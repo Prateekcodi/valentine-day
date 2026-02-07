@@ -4,9 +4,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini (optional - will fallback to mock if no API key)
-const genAI = process.env.GEMINI_API_KEY 
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+const apiKey = process.env.GEMINI_API_KEY;
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+
+// Log API key status (only first 5 chars for security)
+if (apiKey) {
+  console.log(`Gemini API key configured: ${apiKey.substring(0, 5)}...`);
+} else {
+  console.log('No Gemini API key found - using fallback reflections');
+}
 
 // Calculate love percentage based on message quality and effort
 function calculateLovePercentage(p1Answer: string, p2Answer: string): number {
@@ -92,19 +98,27 @@ export async function generateGeminiReflection(
   const dayNumber = day || (dayMatch ? parseInt(dayMatch[1]) : 1);
   
   if (!genAI) {
-    console.log('No Gemini API key, using fallback with both answers');
+    console.log(`[Day ${dayNumber}] No Gemini API key, using fallback`);
     return createFallbackReflection(dayNumber, player1Answer || '...', player2Answer || '...');
   }
   
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-    const result = await model.generateContent(prompt);
+    // Use gemini-1.5-flash which is more widely available
+    console.log(`[Day ${dayNumber}] Generating AI reflection...`);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    // Optimize: truncate prompt to save tokens while keeping essential info
+    const optimizedPrompt = prompt.length > 2000 
+      ? prompt.substring(0, 2000) + '\n[Content truncated for efficiency]'
+      : prompt;
+    
+    const result = await model.generateContent(optimizedPrompt);
     const reflection = result.response.text();
     
-    console.log('Generated AI reflection:', reflection.substring(0, 50) + '...');
+    console.log(`[Day ${dayNumber}] AI reflection generated (${reflection.length} chars)`);
     return reflection;
-  } catch (error) {
-    console.error('Gemini API error:', error);
+  } catch (error: any) {
+    console.error(`[Day ${dayNumber}] Gemini API error:`, error.message);
     return createFallbackReflection(dayNumber, player1Answer || '...', player2Answer || '...');
   }
 }

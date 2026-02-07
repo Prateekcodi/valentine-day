@@ -11,6 +11,7 @@
     "start": "npx tsx src/index.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.0",

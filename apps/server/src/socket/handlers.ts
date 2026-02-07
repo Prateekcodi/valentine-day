@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { rooms } from '../index';
 import { formatPrompt } from '../utils';
-import { generateGeminiReflection } from '../services/gemini';
+import { generateAIReflection } from '../services/ai';
 
 interface DayActionData {
   roomId: string;
@@ -91,7 +91,7 @@ export function setupSocketHandlers(io: Server) {
                                dayProgress.data.player2Support ||
                                dayProgress.data.player2Accepted ? 'Accepted the rose' : '';
           
-          const reflection = await generateGeminiReflection(prompt, player1Answer, player2Answer, day);
+          const reflection = await generateAIReflection(prompt, player1Answer, player2Answer, day);
           
           dayProgress.completed = true;
           dayProgress.aiReflection = reflection;

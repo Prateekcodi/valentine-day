@@ -12,22 +12,43 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3002'],
-    methods: ['GET', 'POST'],
-    credentials: true,
+// Allow CORS from any origin (for development)
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: Function) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin?.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Allow any vercel.app domain for the frontend
+    if (origin?.includes('.vercel.app') || origin?.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow any onrender.com domain
+    if (origin?.includes('.onrender.com') || origin?.includes('onrender.com')) {
+      return callback(null, true);
+    }
+    
+    // In production, allow all origins
+    callback(null, true);
   },
+  credentials: true,
+  methods: ['GET', 'POST']
+};
+
+const io = new Server(httpServer, {
+  cors: corsOptions,
 });
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3002'],
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // In-memory storage

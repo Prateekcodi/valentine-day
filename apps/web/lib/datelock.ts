@@ -1,8 +1,8 @@
 // Date locking system for Valentine Week experience
 // Each day unlocks at midnight starting Feb 7, 2026
 
-// Development mode - set to true to unlock all days for testing
-const DEV_MODE = process.env.NODE_ENV === 'development' || typeof window !== 'undefined';
+// Development mode - only enable in development, NOT in production
+const DEV_MODE = process.env.NODE_ENV === 'development';
 
 export const VALENTINE_WEEK_CONFIG = {
   START_DATE: new Date('2026-02-07T00:00:00'),

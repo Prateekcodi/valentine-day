@@ -1,0 +1,9 @@
+{
+  "name": "7 Days, One Choice",
+  "short_name": "Valentine Week",
+  "description": "A time-locked Valentine Week experience",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#ff6b9d"
+}

@@ -8,48 +8,45 @@ const genAI = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
-// Fallback reflections for when API is unavailable
-const FALLBACK_REFLECTIONS: Record<number, string[]> = {
-  1: [
-    "This moment marks the beginning of something thoughtful. Thank you for showing up, together.",
-    "A rose accepted together is a promise shared. May your journey be filled with quiet moments.",
-    "Sometimes the smallest gestures carry the deepest meaning. This is one of those moments.",
-  ],
-  2: [
-    "Your words reveal intention and care. That's what matters most in any connection.",
-    "Honesty creates the foundation for something real. You've both taken a meaningful step.",
-  ],
-  3: [
-    "The thought behind a gift often matters more than the gift itself. You both showed up.",
-    "Small choices reveal big truths about how we understand each other.",
-  ],
-  4: [
-    "Comfort looks different for everyone. That you took time to share yours is meaningful.",
-    "Understanding how you each give and receive care is a gift in itself.",
-  ],
-  5: [
-    "Real promises aren't grand declarations—they're quiet commitments kept over time.",
-    "You've both chosen to show up for each other. That's what matters.",
-  ],
-  6: [
-    "Love has many languages. You've each shared yours in your own beautiful way.",
-    "The way you express care is uniquely yours. That's something to celebrate.",
-  ],
-  7: [
-    "Being there for someone isn't about fixing—it's about showing up. You both did that.",
-    "Sometimes the best support is simply being present. You understood that.",
-  ],
-  8: [
-    "This week has been a journey of small moments, thoughtful choices, and shared vulnerability.",
-    "What you've built together is rare: intentional connection, one day at a time.",
-    "May this be just the beginning of many more journeys, big and small.",
-  ],
-};
+// Fallback reflections - show BOTH players' messages when AI is unavailable
+function createFallbackReflection(day: number, player1Answer: string, player2Answer: string): string {
+  const responses: Record<number, string> = {
+    1: `You both accepted the rose together. 🌹\n\nThis simple gesture speaks volumes about your connection. Thank you for showing up, together.\n\n"${player1Answer}" + "${player2Answer}" = A journey begins.`,
+    
+    2: `Here's what you both wrote:\n\n📝 ${player1Answer}\n📝 ${player2Answer}\n\nYour words reveal intention and care. That's what matters most in any connection.`,
+    
+    3: `Your chocolate choices:\n\n🍫 ${player1Answer}\n🍫 ${player2Answer}\n\nThe thought behind a gift matters more than the gift itself. You both showed up.`,
+    
+    4: `Your comfort styles:\n\n🧸 ${player1Answer}\n🧸 ${player2Answer}\n\nComfort looks different for everyone. Understanding how you each give and receive care is a gift.`,
+    
+    5: `Your promises:\n\n💎 ${player1Answer}\n💎 ${player2Answer}\n\nReal promises aren't grand declarations—they're quiet commitments kept over time.`,
+    
+    6: `Your expressions of affection:\n\n💋 ${player1Answer}\n💋 ${player2Answer}\n\nLove has many languages. You've each shared yours in your own beautiful way.`,
+    
+    7: `Your support preferences:\n\n🤗 ${player1Answer}\n🤗 ${player2Answer}\n\nBeing there isn't about fixing—it's about showing up. You understood that.`,
+    
+    8: `Your Valentine's Week journey:\n\n❤️ ${player1Answer}\n❤️ ${player2Answer}\n\nThis week has been a journey of small moments, thoughtful choices, and shared vulnerability.\n\nWhat you've built together is rare: intentional connection, one day at a time.`,
+  };
+  
+  return responses[day] || responses[1];
+}
 
-export async function generateGeminiReflection(prompt: string): Promise<string> {
+// Cache for rate limiting
+const reflectionCache = new Map<string, { reflection: string; timestamp: number }>();
+
+export async function generateGeminiReflection(
+  prompt: string,
+  player1Answer?: string,
+  player2Answer?: string,
+  day?: number
+): Promise<string> {
+  // Extract day number from prompt
+  const dayMatch = prompt.match(/Day\s*(\d+)/i) || prompt.match(/(\d+)\s*days?/i);
+  const dayNumber = day || (dayMatch ? parseInt(dayMatch[1]) : 1);
+  
   if (!genAI) {
-    console.log('No Gemini API key, using fallback reflection');
-    return getFallbackReflection(prompt);
+    console.log('No Gemini API key, using fallback with both answers');
+    return createFallbackReflection(dayNumber, player1Answer || '...', player2Answer || '...');
   }
   
   try {
@@ -61,21 +58,9 @@ export async function generateGeminiReflection(prompt: string): Promise<string> 
     return reflection;
   } catch (error) {
     console.error('Gemini API error:', error);
-    return getFallbackReflection(prompt);
+    return createFallbackReflection(dayNumber, player1Answer || '...', player2Answer || '...');
   }
 }
-
-function getFallbackReflection(prompt: string): string {
-  // Extract day number from prompt or use default
-  const dayMatch = prompt.match(/Day\s*(\d+)/i) || prompt.match(/(\d+)\s*days?/i);
-  const day = dayMatch ? parseInt(dayMatch[1]) : 1;
-  
-  const reflections = FALLBACK_REFLECTIONS[day] || FALLBACK_REFLECTIONS[1];
-  return reflections[Math.floor(Math.random() * reflections.length)];
-}
-
-// Cache for rate limiting
-const reflectionCache = new Map<string, { reflection: string; timestamp: number }>();
 
 export function getCachedReflection(cacheKey: string): string | null {
   const cached = reflectionCache.get(cacheKey);

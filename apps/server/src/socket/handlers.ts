@@ -73,7 +73,25 @@ export function setupSocketHandlers(io: Server) {
         // Generate AI reflection
         try {
           const prompt = formatPrompt(day, dayProgress.data);
-          const reflection = await generateGeminiReflection(prompt);
+          
+          // Get both players' answers for personalized reflection
+          const player1Answer = dayProgress.data.player1Message || 
+                               dayProgress.data.player1Choice ||
+                               dayProgress.data.player1Style ||
+                               dayProgress.data.player1Promise ||
+                               dayProgress.data.player1Affection ||
+                               dayProgress.data.player1Support ||
+                               dayProgress.data.player1Accepted ? 'Accepted the rose' : '';
+                               
+          const player2Answer = dayProgress.data.player2Message || 
+                               dayProgress.data.player2Choice ||
+                               dayProgress.data.player2Style ||
+                               dayProgress.data.player2Promise ||
+                               dayProgress.data.player2Affection ||
+                               dayProgress.data.player2Support ||
+                               dayProgress.data.player2Accepted ? 'Accepted the rose' : '';
+          
+          const reflection = await generateGeminiReflection(prompt, player1Answer, player2Answer, day);
           
           dayProgress.completed = true;
           dayProgress.aiReflection = reflection;

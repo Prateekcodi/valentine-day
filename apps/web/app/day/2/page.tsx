@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { MusicPlayer } from '@/components/ui/MusicPlayer';
 import { DAYS, getThemeColors } from '@/lib/datelock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -119,6 +120,9 @@ export default function ProposeDayPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary}20 100%)` }}>
+      {/* Romantic music player */}
+      <MusicPlayer autoPlay={false} />
+      
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard 
           variant="medium" 

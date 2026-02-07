@@ -74,22 +74,45 @@ export function setupSocketHandlers(io: Server) {
         try {
           const prompt = formatPrompt(day, dayProgress.data);
           
-          // Get both players' answers for personalized reflection
-          const player1Answer = dayProgress.data.player1Message || 
-                               dayProgress.data.player1Choice ||
-                               dayProgress.data.player1Style ||
-                               dayProgress.data.player1Promise ||
-                               dayProgress.data.player1Affection ||
-                               dayProgress.data.player1Support ||
-                               dayProgress.data.player1Accepted ? 'Accepted the rose' : '';
-                               
-          const player2Answer = dayProgress.data.player2Message || 
-                               dayProgress.data.player2Choice ||
-                               dayProgress.data.player2Style ||
-                               dayProgress.data.player2Promise ||
-                               dayProgress.data.player2Affection ||
-                               dayProgress.data.player2Support ||
-                               dayProgress.data.player2Accepted ? 'Accepted the rose' : '';
+          // Get both players' answers based on day type
+          let player1Answer = '';
+          let player2Answer = '';
+          
+          switch (day) {
+            case 1: // Rose Day
+              player1Answer = dayProgress.data.player1Accepted ? 'Accepted the rose' : '';
+              player2Answer = dayProgress.data.player2Accepted ? 'Accepted the rose' : '';
+              break;
+            case 2: // Propose Day
+              player1Answer = dayProgress.data.player1Message || '';
+              player2Answer = dayProgress.data.player2Message || '';
+              break;
+            case 3: // Chocolate Day
+              player1Answer = dayProgress.data.player1Choice || '';
+              player2Answer = dayProgress.data.player2Choice || '';
+              break;
+            case 4: // Teddy Day
+              player1Answer = dayProgress.data.player1Style || '';
+              player2Answer = dayProgress.data.player2Style || '';
+              break;
+            case 5: // Promise Day
+              player1Answer = dayProgress.data.player1Promise || '';
+              player2Answer = dayProgress.data.player2Promise || '';
+              break;
+            case 6: // Kiss Day
+              player1Answer = dayProgress.data.player1Affection || '';
+              player2Answer = dayProgress.data.player2Affection || '';
+              break;
+            case 7: // Hug Day
+              player1Answer = dayProgress.data.player1Support || '';
+              player2Answer = dayProgress.data.player2Support || '';
+              break;
+            default:
+              player1Answer = '';
+              player2Answer = '';
+          }
+          
+          console.log(`[Day ${day}] Generating reflection. P1="${player1Answer}" P2="${player2Answer}"`);
           
           const reflection = await generateAIReflection(prompt, player1Answer, player2Answer, day);
           

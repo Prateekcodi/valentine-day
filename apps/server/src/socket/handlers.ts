@@ -4,6 +4,8 @@ import { formatPrompt } from '../utils';
 import { generateGeminiReflection } from '../services/gemini';
 
 interface DayActionData {
+  roomId: string;
+  playerId: string;
   day: number;
   action: string;
   data: any;

@@ -171,20 +171,17 @@ Length: 200-250 words
 export function formatPrompt(day: number, data: any): string {
   const basePrompt = REFLECTION_PROMPTS[day] || '';
   
-  // Customize prompt with actual data
+  // Get player messages
+  const p1Msg = data.player1Message || data.player1Choice || data.player1Style || data.player1Promise || data.player1Affection || data.player1Support || '';
+  const p2Msg = data.player2Message || data.player2Choice || data.player2Style || data.player2Promise || data.player2Affection || data.player2Support || '';
+  
+  // Create custom prompt with actual data
   let customizedPrompt = basePrompt;
   
-  if (day === 2 && data.messages) {
-    customizedPrompt = customizedPrompt.replace(
-      '${player1Message}',
-      data.messages.player1 || '...'
-    ).replace(
-      '${player2Message}',
-      data.messages.player2 || '...'
-    );
+  // Add player messages to the prompt
+  if (p1Msg && p2Msg) {
+    customizedPrompt += `\n\nPlayer 1 wrote: "${p1Msg}"\nPlayer 2 wrote: "${p2Msg}"`;
   }
-  
-  // Add similar replacements for other days as needed
   
   return customizedPrompt;
 }

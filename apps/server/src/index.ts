@@ -62,43 +62,118 @@ async function generateReflection(day: number, dayData: any): Promise<string> {
   const p2Name = dayData.player2Name || 'Player 2';
 
   if (day === 1) {
-    prompt = `You are writing a heartfelt reflection for Rose Day.
-${p1Name} and ${p2Name} just accepted a rose together.
-Write a warm, poetic reflection under 80 words.`;
+    prompt = `You are writing a heartfelt, detailed reflection for Rose Day between ${p1Name} and ${p2Name}.
+
+They just accepted a rose together, marking the beginning of their Valentine Week journey.
+
+Write a warm, poetic, and emotionally rich reflection that:
+- Celebrates this quiet beginning
+- Reflects on the significance of choosing to start this journey together
+- Acknowledges the vulnerability and hope in this first step
+- Feels intimate and personal
+- Is 200-300 words long
+
+Style: Poetic, warm, intimate, celebrating small moments.`;
   } else if (day === 2) {
-    prompt = `You are helping ${p1Name} and ${p2Name} reflect on Propose Day.
-${p1Name} wrote: "${dayData.player1Message || ''}"
-${p2Name} wrote: "${dayData.player2Message || ''}"
+    prompt = `You are writing a heartfelt, detailed reflection for Propose Day between ${p1Name} and ${p2Name}.
+
+${p1Name}'s message: "${dayData.player1Message || ''}"
+${p2Name}'s message: "${dayData.player2Message || ''}"
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates what these messages reveal about their connection
+- Reflects on the honesty and vulnerability they shared
+- Acknowledges the uniqueness of their bond
+- Feels intimate and personal to them
+- Makes them feel seen and understood
+
 Format: ★ Love Percentage: XX% ☆ Star Rating: X/5 stars
-Then heartfelt reflection.`;
+
+Style: Poetic, warm, intimate, celebrating their love.`;
   } else if (day === 3) {
-    prompt = `${p1Name} and ${p2Name} shared Chocolate Day.
+    prompt = `You are writing a heartfelt, detailed reflection for Chocolate Day between ${p1Name} and ${p2Name}.
+
 ${p1Name} chose: "${dayData.player1Choice || ''}" - "${dayData.player1Message || ''}"
 ${p2Name} chose: "${dayData.player2Choice || ''}" - "${dayData.player2Message || ''}"
-Give sweet ratings and warm feedback.`;
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates the thoughtfulness behind their chocolate choices
+- Reflects on what these choices reveal about how they understand each other
+- Makes them feel seen and appreciated
+- Acknowledges the sweet moments they share
+- Feels intimate and personal to their unique bond
+
+Style: Sweet, warm, intimate, celebrating their connection.`;
   } else if (day === 4) {
-    prompt = `${p1Name} and ${p2Name} shared comfort styles.
-${p1Name} offers: "${dayData.player1Data?.offering || ''}" receives: "${dayData.player1Data?.receiving || ''}"
-${p2Name} offers: "${dayData.player2Data?.offering || ''}" receives: "${dayData.player2Data?.receiving || ''}"
-Rate understanding and give warm feedback.`;
+    prompt = `You are writing a heartfelt, detailed reflection for Teddy Day between ${p1Name} and ${p2Name}.
+
+${p1Name} offers comfort through: "${dayData.player1Data?.offering || ''}" and receives comfort through: "${dayData.player1Data?.receiving || ''}"
+${p2Name} offers comfort through: "${dayData.player2Data?.offering || ''}" and receives comfort through: "${dayData.player2Data?.receiving || ''}"
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates how they understand each other's comfort needs
+- Reflects on the beauty of knowing how to be there for each other
+- Makes them feel seen and understood
+- Acknowledges the tender moments they share
+- Feels intimate and personal to their unique bond
+
+Style: Tender, warm, intimate, celebrating their emotional connection.`;
   } else if (day === 5) {
-    prompt = `${p1Name} and ${p2Name} made promises.
-${p1Name}: "${dayData.player1Data || ''}"
-${p2Name}: "${dayData.player2Data || ''}"
-Rate commitment and give sincere feedback.`;
+    prompt = `You are writing a heartfelt, detailed reflection for Promise Day between ${p1Name} and ${p2Name}.
+
+${p1Name}'s promise: "${dayData.player1Data || ''}"
+${p2Name}'s promise: "${dayData.player2Data || ''}"
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates the sincerity and thoughtfulness of their promises
+- Reflects on what these commitments reveal about their bond
+- Makes them feel seen and valued
+- Acknowledges the trust they have in each other
+- Feels intimate and personal to their unique relationship
+
+Style: Sincere, warm, intimate, celebrating their commitment.`;
   } else if (day === 6) {
-    prompt = `${p1Name} and ${p2Name} expressed affection.
-${p1Name}: "${dayData.player1Data || ''}"
-${p2Name}: "${dayData.player2Data || ''}"
-Rate affection and give tender feedback.`;
+    prompt = `You are writing a heartfelt, detailed reflection for Kiss Day between ${p1Name} and ${p2Name}.
+
+${p1Name} expressed affection: "${dayData.player1Data || ''}"
+${p2Name} expressed affection: "${dayData.player2Data || ''}"
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates how they express love and affection
+- Reflects on the tenderness they share
+- Makes them feel seen and adored
+- Acknowledges the unique ways they show love
+- Feels intimate and personal to their special bond
+
+Style: Tender, warm, intimate, celebrating their love.`;
   } else if (day === 7) {
-    prompt = `${p1Name} and ${p2Name} shared support needs.
-${p1Name} needs: "${dayData.player1Data || ''}" ${p2Name} responded: "${dayData.player2Data || ''}"
-${p2Name} needs: "${dayData.player2Data || ''}" ${p1Name} responded: "${dayData.player1Data || ''}"
-Rate support and give warm feedback.`;
+    prompt = `You are writing a heartfelt, detailed reflection for Hug Day between ${p1Name} and ${p2Name}.
+
+${p1Name} needs support: "${dayData.player1Data || ''}" and ${p2Name} responded: "${dayData.player2Data || ''}"
+${p2Name} needs support: "${dayData.player2Data || ''}" and ${p1Name} responded: "${dayData.player1Data || ''}"
+
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+- Celebrates how they support each other
+- Reflects on the emotional safety they've created together
+- Makes them feel seen and supported
+- Acknowledges the trust they have in each other
+- Feels intimate and personal to their unique bond
+
+Style: Warm, tender, intimate, celebrating their emotional connection.`;
   } else if (day === 8 && Array.isArray(dayData)) {
-    prompt = `Final reflection for Valentine's Day between ${p1Name} and ${p2Name}.
-Give beautiful reflection about their complete journey. Under 150 words.`;
+    prompt = `You are writing the final, most heartfelt reflection for Valentine's Day between ${p1Name} and ${p2Name}.
+
+They have completed an entire week of meaningful moments together - Rose Day through Hug Day. Each day revealed something beautiful about their connection.
+
+Write an emotional, detailed finale reflection (300-500 words) that:
+- Celebrates their complete journey together
+- Reflects on how love showed up in each small moment
+- Acknowledges the depth of their connection
+- Makes them feel incredibly special and loved
+- Feels like a beautiful conclusion to their romantic week
+- Tells them this love is rare and precious
+
+Style: Romantic, heartfelt, celebratory, deeply emotional, making them feel like the luckiest people to have found each other.`;
   }
 
   const p1Answer = dayData.player1Message || dayData.player1Data || dayData.player1Choice || '';

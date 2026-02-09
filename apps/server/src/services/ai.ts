@@ -1,23 +1,24 @@
 // AI Reflection Service
-// Supports MiniMax API (primary) and Gemini API (fallback)
+// Uses MiniMax API (via Anthropic SDK compatibility)
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import Anthropic from '@anthropic-ai/sdk';
 
-// Initialize APIs
+// Initialize MiniMax API (via Anthropic SDK)
 const miniMaxKey = process.env.MINIMAX_API_KEY;
-const geminiKey = process.env.GEMINI_API_KEY;
 
-const anthropic = miniMaxKey ? new Anthropic({ apiKey: miniMaxKey }) : null;
-const genAI = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
+// Configure MiniMax with Anthropic SDK
+const anthropic = miniMaxKey 
+  ? new Anthropic({
+      apiKey: miniMaxKey,
+      baseURL: 'https://api.minimax.io/anthropic'
+    }) 
+  : null;
 
 // Log API status
 if (miniMaxKey) {
-  console.log(`MiniMax API key configured: ${miniMaxKey.substring(0, 5)}...`);
-} else if (geminiKey) {
-  console.log(`Gemini API key configured: ${geminiKey.substring(0, 5)}...`);
+  console.log(`MiniMax API configured: ${miniMaxKey.substring(0, 5)}...`);
 } else {
-  console.log('No AI API keys found - using fallback reflections');
+  console.log('No MiniMax API key found - using fallback reflections');
 }
 
 // Analyze message sentiment and content honesty
@@ -181,35 +182,7 @@ async function generateMiniMaxReflection(prompt: string, day: number): Promise<s
   }
 }
 
-// Generate reflection using Gemini API
-async function generateGeminiReflection(prompt: string, day: number): Promise<string | null> {
-  if (!genAI) {
-    return null;
-  }
-  
-  try {
-    console.log(`[Day ${day}] Generating Gemini reflection...`);
-    
-    // Use gemini-1.5-flash for better compatibility
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    // Truncate prompt to save tokens
-    const optimizedPrompt = prompt.length > 3000 
-      ? prompt.substring(0, 3000) + '\n[Content truncated]'
-      : prompt;
-    
-    const result = await model.generateContent(optimizedPrompt);
-    const reflection = result.response.text();
-    
-    console.log(`[Day ${day}] Gemini reflection generated (${reflection.length} chars)`);
-    return reflection;
-  } catch (error: any) {
-    console.error(`[Day ${day}] Gemini API error:`, error.message);
-    return null;
-  }
-}
-
-// Main function - tries MiniMax first, then Gemini, then fallback
+// Main function - tries MiniMax, then fallback
 export async function generateAIReflection(
   prompt: string,
   player1Answer: string,
@@ -219,14 +192,6 @@ export async function generateAIReflection(
   // Try MiniMax first
   if (miniMaxKey) {
     const result = await generateMiniMaxReflection(prompt, day);
-    if (result) {
-      return result;
-    }
-  }
-  
-  // Try Gemini as fallback
-  if (geminiKey) {
-    const result = await generateGeminiReflection(prompt, day);
     if (result) {
       return result;
     }

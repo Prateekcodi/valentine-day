@@ -82,6 +82,8 @@ export default function Day6Page() {
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
+        // Fetch latest status to get partner's data
+        setTimeout(() => checkExisting(), 500);
       }
     } catch (e) { console.error('Submit failed:', e); }
     finally { setLoading(false); }

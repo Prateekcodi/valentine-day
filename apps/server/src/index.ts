@@ -595,12 +595,23 @@ app.get('/api/day/2/status', (req: express.Request, res: express.Response) => {
   const hasPartnerSubmitted = isPlayer1
     ? dayProgress.data?.player2Submitted
     : dayProgress.data?.player1Submitted;
+  
+  // Get player's own message and partner's message
+  const playerMessage = isPlayer1 
+    ? dayProgress.data?.player1Message 
+    : dayProgress.data?.player2Message;
+    
+  const partnerMessage = isPlayer1
+    ? dayProgress.data?.player2Message
+    : dayProgress.data?.player1Message;
 
   res.json({
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
     reflection: dayProgress.aiReflection || null,
-    completed: dayProgress.completed
+    completed: dayProgress.completed,
+    playerMessage: playerMessage || '',
+    partnerMessage: partnerMessage || ''
   });
 });
 
@@ -671,12 +682,18 @@ app.get('/api/day/3/status', (req: express.Request, res: express.Response) => {
   const isPlayer1 = room.player1?.id === playerId;
   const hasThisPlayerSubmitted = isPlayer1 ? dayProgress.data?.player1Submitted : dayProgress.data?.player2Submitted;
   const hasPartnerSubmitted = isPlayer1 ? dayProgress.data?.player2Submitted : dayProgress.data?.player1Submitted;
+  
+  // Get player's own choice and partner's choice
+  const playerChoice = isPlayer1 ? dayProgress.data?.player1Choice : dayProgress.data?.player2Choice;
+  const partnerChoice = isPlayer1 ? dayProgress.data?.player2Choice : dayProgress.data?.player1Choice;
 
   res.json({
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
     reflection: dayProgress.aiReflection || null,
-    completed: dayProgress.completed
+    completed: dayProgress.completed,
+    playerChoice: playerChoice || '',
+    partnerChoice: partnerChoice || ''
   });
 });
 

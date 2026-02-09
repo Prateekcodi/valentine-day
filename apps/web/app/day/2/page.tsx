@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { MusicPlayer } from '@/components/ui/MusicPlayer';
+import { SoundPlayer } from '@/components/ui/SoundPlayer';
+import { MessageSlider } from '@/components/ui/SoundPlayer';
 import { DAYS, getThemeColors } from '@/lib/datelock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -12,6 +13,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 interface ReflectionResponse {
   reflection: string;
   completed: boolean;
+}
+
+interface DayStatus {
+  submitted: boolean;
+  partnerSubmitted: boolean;
+  reflection: string | null;
+  playerMessage?: string;
+  partnerMessage?: string;
 }
 
 export default function ProposeDayPage() {
@@ -26,6 +35,7 @@ export default function ProposeDayPage() {
   const [reflection, setReflection] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [dayStatus, setDayStatus] = useState<DayStatus | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -42,9 +52,9 @@ export default function ProposeDayPage() {
       if (!reflection) {
         checkExistingSubmission();
       } else {
-        clearInterval(pollInterval); // Stop polling once we have the reflection
+        clearInterval(pollInterval);
       }
-    }, 10000);
+    }, 5000);
     
     return () => clearInterval(pollInterval);
   }, []);
@@ -53,9 +63,10 @@ export default function ProposeDayPage() {
     try {
       const playerId = localStorage.getItem('playerId');
       const response = await fetch(`${API_URL}/api/day/${dayNumber}/status?room=${roomId}&playerId=${playerId || ''}`);
-      const data = await response.json();
+      const data: DayStatus = await response.json();
       
       console.log('Day 2 status:', data);
+      setDayStatus(data);
       
       if (data.submitted) {
         setSubmitted(true);
@@ -117,11 +128,13 @@ export default function ProposeDayPage() {
 
   const dayInfo = DAYS[1];
   const theme = getThemeColors(dayInfo.theme);
+  const playerName = localStorage.getItem('playerName') || 'Player';
+  const partnerName = dayStatus?.partnerSubmitted ? 'Partner' : '';
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary}20 100%)` }}>
-      {/* Romantic music player */}
-      <MusicPlayer autoPlay={false} />
+      {/* Sound player with nature sounds */}
+      <SoundPlayer autoPlay={false} />
       
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard 
@@ -180,6 +193,18 @@ export default function ProposeDayPage() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Message slider to see each other's messages */}
+              {dayStatus?.playerMessage && dayStatus?.partnerMessage && (
+                <div className="mb-6">
+                  <MessageSlider
+                    player1Message={dayStatus.playerMessage}
+                    player2Message={dayStatus.partnerMessage}
+                    player1Name={playerName}
+                    player2Name="Partner"
+                  />
+                </div>
+              )}
+              
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>

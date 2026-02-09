@@ -29,6 +29,7 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
   const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Initialize audio
   useEffect(() => {
     audioRef.current = new Audio(currentSound.url);
     audioRef.current.loop = true;
@@ -41,6 +42,23 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
       }
     };
   }, []);
+
+  // Handle sound changes
+  useEffect(() => {
+    if (audioRef.current) {
+      const wasPlaying = !isPlaying;
+      audioRef.current.src = currentSound.url;
+      audioRef.current.loop = true;
+      audioRef.current.load(); // Reload the audio with new source
+      
+      // If was playing, restart with new sound
+      if (wasPlaying && !isMuted) {
+        audioRef.current.play().catch(() => {
+          setNeedsUserInteraction(true);
+        });
+      }
+    }
+  }, [currentSound]);
 
   // Handle autoplay restrictions
   useEffect(() => {
@@ -60,6 +78,16 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
   }, [volume, isMuted]);
 
   const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(() => {
+          // If autoplay is blocked, require user interaction
+          setNeedsUserInteraction(true);
+        });
+      }
+    }
     setIsPlaying(!isPlaying);
   };
 

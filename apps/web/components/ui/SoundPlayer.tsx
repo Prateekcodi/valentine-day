@@ -126,12 +126,14 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
           <div
             className={cn(
               'absolute bottom-full right-0 mb-2',
+              'min-w-[200px]',
               'bg-white/95 backdrop-blur-xl',
               'border border-white/30',
               'rounded-2xl p-3',
               'shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]',
-              'grid grid-cols-3 gap-2',
-              'animate-[slideUp_0.2s_ease-out]'
+              'grid grid-cols-2 gap-2',
+              'animate-[slideUp_0.2s_ease-out]',
+              'z-50'
             )}
           >
             {SOUND_OPTIONS.map((sound) => (
@@ -142,13 +144,14 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
                   setShowSoundPicker(false);
                 }}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-2 rounded-xl',
+                  'flex flex-row items-center gap-2 px-3 py-2 rounded-xl',
                   'hover:bg-white/30 transition-all duration-200',
+                  'whitespace-nowrap',
                   currentSound.id === sound.id && 'bg-white/40'
                 )}
               >
-                <span className="text-xl">{sound.emoji}</span>
-                <span className="text-xs text-gray-600">{sound.name}</span>
+                <span className="text-lg">{sound.emoji}</span>
+                <span className="text-sm text-gray-700 truncate">{sound.name}</span>
               </button>
             ))}
           </div>

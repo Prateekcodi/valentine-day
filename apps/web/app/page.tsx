@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassInput } from '@/components/ui/GlassInput';
-import { MusicPlayer } from '@/components/ui/MusicPlayer';
+import { SoundPlayer } from '@/components/ui/SoundPlayer';
 import { validateName, validateRoomCode } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -112,8 +112,8 @@ export default function LandingPage() {
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
       
-      {/* Romantic music player */}
-      <MusicPlayer autoPlay={false} />
+      {/* Sound player */}
+      <SoundPlayer autoPlay={false} />
       
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-64 h-64 bg-rose-300/30 rounded-full blur-3xl animate-float" />

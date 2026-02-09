@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { MusicPlayer } from '@/components/ui/MusicPlayer';
+import { SoundPlayer } from '@/components/ui/SoundPlayer';
 import { DAYS, isDayUnlocked } from '@/lib/datelock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -75,8 +75,8 @@ export default function RoomPage() {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
       
-      {/* Romantic music player */}
-      <MusicPlayer autoPlay={false} />
+      {/* Sound player */}
+      <SoundPlayer autoPlay={false} />
       
       <div className="relative z-10 container max-w-4xl mx-auto px-4 py-8">
         {/* Header */}

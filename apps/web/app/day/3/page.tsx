@@ -168,32 +168,32 @@ export default function ChocolateDayPage() {
                 Send Chocolate 💝
               </GlassButton>
             </div>
-          ) : !reflection ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: theme.primary }} />
-                <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
-              </div>
-            </div>
           ) : (
             <div className="space-y-6">
               {/* Message slider to see each other's choices */}
-              {dayStatus?.playerChoice && (
-                <div className="mb-6">
-                  <MessageSlider
-                    player1Message={dayStatus.playerChoice || ''}
-                    player2Message={dayStatus.partnerChoice || 'Waiting for partner...'}
-                    player1Name={localStorage.getItem('playerName') || 'You'}
-                    player2Name="Partner"
-                  />
-                </div>
-              )}
+              <div className="mb-6">
+                <MessageSlider
+                  player1Message={dayStatus?.playerChoice || choice || ''}
+                  player2Message={dayStatus?.partnerChoice || 'Waiting for partner...'}
+                  player1Name={localStorage.getItem('playerName') || 'You'}
+                  player2Name="Partner"
+                />
+              </div>
               
-              <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
-                <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
-              </GlassCard>
-              <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>
+              {!reflection ? (
+                <div className="flex items-center justify-center gap-2 text-gray-700">
+                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: theme.primary }} />
+                  <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
+                </div>
+              ) : (
+                <>
+                  <GlassCard variant="subtle" className="p-6">
+                    <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                    <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
+                  </GlassCard>
+                  <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>
+                </>
+              )}
             </div>
           )}
         </GlassCard>

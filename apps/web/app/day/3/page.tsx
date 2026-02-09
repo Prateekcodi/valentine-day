@@ -175,7 +175,7 @@ export default function ChocolateDayPage() {
               {/* Message slider to see each other's choices */}
               <div className="mb-6">
                 <MessageSlider
-                  player1Message={dayStatus?.playerMessage || choice || ''}
+                  player1Message={dayStatus?.playerMessage ? `${dayStatus.playerMessage} - "${message}"` : `${choice} - "${message}"`}
                   player2Message={dayStatus?.partnerMessage || 'Waiting for partner...'}
                   player1Name={localStorage.getItem('playerName') || 'You'}
                   player2Name="Partner"

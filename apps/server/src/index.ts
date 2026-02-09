@@ -121,19 +121,18 @@ Format: ★ Love Percentage: XX% ☆ Star Rating: X/5 stars
 
 Style: Poetic, warm, intimate, celebrating their love.`;
   } else if (day === 3) {
-    prompt = `You are writing a heartfelt, detailed reflection for Chocolate Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a sweet, simple reflection for Chocolate Day between ${p1Name} and ${p2Name}.
 
-${p1Name} chose: "${dayData.player1Choice || ''}" - "${dayData.player1Message || ''}"
-${p2Name} chose: "${dayData.player2Choice || ''}" - "${dayData.player2Message || ''}"
+${p1Name} chose: "${dayData.player1Choice || ''}" and said: "${dayData.player1Message || ''}"
+${p2Name} chose: "${dayData.player2Choice || ''}" and said: "${dayData.player2Message || ''}"
 
-Write a warm, poetic, emotionally rich reflection (200-400 words) that:
-- Celebrates the thoughtfulness behind their chocolate choices
-- Reflects on what these choices reveal about how they understand each other
-- Makes them feel seen and appreciated
-- Acknowledges the sweet moments they share
-- Feels intimate and personal to their unique bond
+Write a simple, warm reflection (100-200 words) that:
+- Says something nice about why they chose that chocolate
+- Talks about how well they know each other
+- Makes them smile and feel good
+- Is easy to understand, like talking to a friend
 
-Style: Sweet, warm, intimate, celebrating their connection.`;
+Style: Sweet, simple, warm, like a friendly chat.`;
   } else if (day === 4) {
     prompt = `You are writing a heartfelt, detailed reflection for Teddy Day between ${p1Name} and ${p2Name}.
 

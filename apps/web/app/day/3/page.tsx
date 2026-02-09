@@ -69,21 +69,20 @@ export default function ChocolateDayPage() {
         body: JSON.stringify({ 
           roomId: roomId, 
           playerId: playerId, 
-          choice: choice,
-          message: message  // Send message to AI
+          data: { choice, message }  // Wrap in data object for generic API
         }),
       });
       const data = await response.json();
       setSubmitted(true);
       
       // Update dayStatus with our choice so MessageSlider works
-      setDayStatus({
+      setDayStatus((prev: any) => ({
         submitted: true,
         partnerSubmitted: data.completed,
         reflection: data.reflection || null,
         playerChoice: choice,
-        partnerChoice: data.completed ? dayStatus?.partnerChoice || '' : ''
-      });
+        partnerChoice: data.completed ? (prev?.partnerChoice || '') : ''
+      }));
       
       if (data.completed) {
         setPartnerSubmitted(true);

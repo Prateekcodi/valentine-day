@@ -21,11 +21,12 @@ interface SoundPlayerProps {
 }
 
 export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false); // Always start paused for user-initiated play
+  const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.4);
   const [currentSound, setCurrentSound] = useState(SOUND_OPTIONS[0]);
   const [showSoundPicker, setShowSoundPicker] = useState(false);
+  const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -41,23 +42,14 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
     };
   }, []);
 
+  // Handle autoplay restrictions
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.src = currentSound.url;
-      audioRef.current.load();
-      if (isPlaying && !isMuted) {
-        audioRef.current.play().catch(() => {});
-      }
-    }
-  }, [currentSound]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying && !isMuted) {
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.pause();
-      }
+    if (audioRef.current && isPlaying && !isMuted) {
+      audioRef.current.play().catch((err) => {
+        console.log('Autoplay blocked, user interaction needed');
+        setIsPlaying(false);
+        setNeedsUserInteraction(true);
+      });
     }
   }, [isPlaying, isMuted]);
 
@@ -203,6 +195,22 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
       {isPlaying && !isMuted && (
         <div className="absolute -top-1 -right-1">
           <div className="w-3 h-3 bg-rose-400 rounded-full animate-pulse" />
+        </div>
+      )}
+
+      {/* Autoplay blocked overlay */}
+      {needsUserInteraction && (
+        <div 
+          className="absolute -top-2 -left-2 -right-2 -bottom-2 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center cursor-pointer z-50"
+          onClick={() => {
+            setIsPlaying(true);
+            setNeedsUserInteraction(false);
+          }}
+        >
+          <div className="text-center">
+            <div className="text-rose-500 text-2xl mb-1">🎵</div>
+            <div className="text-xs text-gray-700 font-medium">Click to play</div>
+          </div>
         </div>
       )}
     </div>

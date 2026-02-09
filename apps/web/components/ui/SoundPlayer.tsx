@@ -9,12 +9,11 @@ interface SoundOption {
 }
 
 const SOUND_OPTIONS: SoundOption[] = [
-  { id: 'piano', name: 'Romantic Piano', emoji: '🎹', url: '/sounds/piano.mp3' },
-  { id: 'rain', name: 'Gentle Rain', emoji: '🌧️', url: '/sounds/rain.mp3' },
-  { id: 'waterfall', name: 'Waterfall', emoji: '💧', url: '/sounds/waterfall.mp3' },
-  { id: 'fire', name: 'Fireplace', emoji: '🔥', url: '/sounds/fire.mp3' },
-  { id: 'birds', name: 'Forest Birds', emoji: '🐦', url: '/sounds/birds.mp3' },
-  { id: 'ocean', name: 'Ocean Waves', emoji: '🌊', url: '/sounds/ocean.mp3' },
+  { id: 'piano', name: 'Romantic Piano', emoji: '🎹', url: '/sound/freesound_community-chonology-of-love-6094.mp3' },
+  { id: 'rain', name: 'Gentle Rain', emoji: '🌧️', url: '/sound/vem_click-rain-sound-188158.mp3' },
+  { id: 'birds', name: 'Forest Birds', emoji: '🐦', url: '/sound/freesound_community-birds-19624.mp3' },
+  { id: 'music', name: 'Emotive Music', emoji: '🎵', url: '/sound/freesound_community-emotive-film-music-28052.mp3' },
+  { id: 'paino', name: 'Emotional Piano', emoji: '🎼', url: '/sound/coffeebagaudiolab-emotional-paino-238158.mp3' },
 ];
 
 interface SoundPlayerProps {

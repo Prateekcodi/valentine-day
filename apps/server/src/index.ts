@@ -779,7 +779,9 @@ app.get('/api/day/:dayNumber/status', (req: express.Request, res: express.Respon
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
     reflection: dayProgress.aiReflection || null,
-    completed: dayProgress.completed
+    completed: dayProgress.completed,
+    playerMessage: dayProgress.data?.player1Data || dayProgress.data?.player2Data || '',
+    partnerMessage: dayProgress.data?.player1Data ? dayProgress.data?.player2Data : dayProgress.data?.player1Data || ''
   });
 });
 

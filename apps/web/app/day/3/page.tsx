@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { SoundPlayer, MessageSlider } from '@/components/ui/SoundPlayer';
 import { DAYS, getThemeColors } from '@/lib/datelock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -21,6 +22,7 @@ export default function ChocolateDayPage() {
   const [mounted, setMounted] = useState(false);
   const [choice, setChoice] = useState('comfort');
   const [message, setMessage] = useState('');
+  const [dayStatus, setDayStatus] = useState<any>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -44,6 +46,7 @@ export default function ChocolateDayPage() {
       const playerId = localStorage.getItem('playerId');
       const response = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (playerId || ''));
       const data = await response.json();
+      setDayStatus(data);
       if (data.submitted) {
         setSubmitted(true);
         if (data.partnerSubmitted) {
@@ -99,6 +102,9 @@ export default function ChocolateDayPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, ' + theme.secondary + ' 0%, ' + theme.primary + '20 100%)' }}>
+      {/* Sound player */}
+      <SoundPlayer autoPlay={false} />
+      
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={dayNumber} className="p-8 text-center">
           <div className="mb-8">
@@ -162,6 +168,18 @@ export default function ChocolateDayPage() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Message slider to see each other's choices */}
+              {dayStatus?.playerChoice && dayStatus?.partnerChoice && (
+                <div className="mb-6">
+                  <MessageSlider
+                    player1Message={dayStatus.playerChoice}
+                    player2Message={dayStatus.partnerChoice}
+                    player1Name={localStorage.getItem('playerName') || 'You'}
+                    player2Name="Partner"
+                  />
+                </div>
+              )}
+              
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>

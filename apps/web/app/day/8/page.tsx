@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { SoundPlayer } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -72,6 +73,8 @@ export default function Day8Page() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-red-100 via-pink-100 to-rose-200">
+      <SoundPlayer autoPlay={true} />
+      
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-64 h-64 bg-red-300/30 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-pink-300/30 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { SoundPlayer, MessageSlider } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -25,6 +26,7 @@ export default function Day4Page() {
   const [offering, setOffering] = useState('talk');
   const [receiving, setReceiving] = useState('talk');
   const [message, setMessage] = useState('');
+  const [dayStatus, setDayStatus] = useState<any>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -45,6 +47,7 @@ export default function Day4Page() {
       const pid = localStorage.getItem('playerId');
       const res = await fetch(API_URL + '/api/day/' + DAY_NUMBER + '/status?room=' + roomId + '&playerId=' + (pid || ''));
       const data = await res.json();
+      setDayStatus(data);
       if (data.submitted) {
         setSubmitted(true);
         if (data.partnerSubmitted) {
@@ -91,6 +94,9 @@ export default function Day4Page() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-50 via-peach-50 to-orange-100">
+      {/* Sound player */}
+      <SoundPlayer autoPlay={false} />
+      
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={DAY_NUMBER} className="p-8 text-center">
           <div className="mb-8">
@@ -107,7 +113,6 @@ export default function Day4Page() {
           
           {!submitted ? (
             <div className="space-y-6 text-left">
-              {/* How I offer comfort */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">How do you offer comfort?</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -124,7 +129,6 @@ export default function Day4Page() {
                 </div>
               </div>
               
-              {/* How I receive comfort */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">How do you prefer to receive comfort?</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -141,7 +145,6 @@ export default function Day4Page() {
                 </div>
               </div>
               
-              {/* Message */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tell them more about your comfort style</label>
                 <textarea
@@ -170,6 +173,18 @@ export default function Day4Page() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Message slider */}
+              {dayStatus?.playerOffering && dayStatus?.partnerOffering && (
+                <div className="mb-6">
+                  <MessageSlider
+                    player1Message={`I offer: ${dayStatus.playerOffering}, I receive: ${dayStatus.playerReceiving}`}
+                    player2Message={`They offer: ${dayStatus.partnerOffering}, They receive: ${dayStatus.partnerReceiving}`}
+                    player1Name={localStorage.getItem('playerName') || 'You'}
+                    player2Name="Partner"
+                  />
+                </div>
+              )}
+              
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>

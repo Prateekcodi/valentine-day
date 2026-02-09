@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { SoundPlayer, MessageSlider } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -20,6 +21,7 @@ export default function Day6Page() {
   const [mounted, setMounted] = useState(false);
   const [affection, setAffection] = useState('words');
   const [message, setMessage] = useState('');
+  const [dayStatus, setDayStatus] = useState<any>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -40,6 +42,7 @@ export default function Day6Page() {
       const pid = localStorage.getItem('playerId');
       const res = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (pid || ''));
       const data = await res.json();
+      setDayStatus(data);
       if (data.submitted) {
         setSubmitted(true);
         if (data.partnerSubmitted) {
@@ -88,6 +91,8 @@ export default function Day6Page() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-red-50 via-pink-50 to-rose-100">
+      <SoundPlayer autoPlay={false} />
+      
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={6} className="p-8 text-center">
           <div className="mb-8">
@@ -150,6 +155,17 @@ export default function Day6Page() {
             </div>
           ) : (
             <div className="space-y-6">
+              {dayStatus?.playerAffection && dayStatus?.partnerAffection && (
+                <div className="mb-6">
+                  <MessageSlider
+                    player1Message={dayStatus.playerAffection}
+                    player2Message={dayStatus.partnerAffection}
+                    player1Name={localStorage.getItem('playerName') || 'You'}
+                    player2Name="Partner"
+                  />
+                </div>
+              )}
+              
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>

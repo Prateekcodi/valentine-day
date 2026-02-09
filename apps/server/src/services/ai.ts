@@ -165,7 +165,7 @@ async function generateGeminiReflection(prompt: string, day: number): Promise<st
   console.log(`[Day ${day}] 🔄 Trying Gemini API...`);
   
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     const optimizedPrompt = prompt.length > 3000 ? prompt.substring(0, 3000) + '\n[Content truncated]' : prompt;
     
     const result = await model.generateContent(optimizedPrompt);

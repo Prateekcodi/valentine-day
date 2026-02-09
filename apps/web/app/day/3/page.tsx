@@ -76,17 +76,19 @@ export default function ChocolateDayPage() {
       setSubmitted(true);
       
       // Update dayStatus with our choice so MessageSlider works
-      setDayStatus((prev: any) => ({
+      setDayStatus({
         submitted: true,
         partnerSubmitted: data.completed,
         reflection: data.reflection || null,
-        playerChoice: choice,
-        partnerChoice: data.completed ? (prev?.partnerChoice || '') : ''
-      }));
+        playerMessage: choice,
+        partnerMessage: data.completed ? '' : 'Waiting for partner...'
+      });
       
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
+        // Fetch latest status to get partner's choice
+        setTimeout(() => checkExistingSubmission(), 500);
       }
     } catch (error) {
       console.error('Failed to submit:', error);
@@ -173,8 +175,8 @@ export default function ChocolateDayPage() {
               {/* Message slider to see each other's choices */}
               <div className="mb-6">
                 <MessageSlider
-                  player1Message={dayStatus?.playerChoice || choice || ''}
-                  player2Message={dayStatus?.partnerChoice || 'Waiting for partner...'}
+                  player1Message={dayStatus?.playerMessage || choice || ''}
+                  player2Message={dayStatus?.partnerMessage || 'Waiting for partner...'}
                   player1Name={localStorage.getItem('playerName') || 'You'}
                   player2Name="Partner"
                 />

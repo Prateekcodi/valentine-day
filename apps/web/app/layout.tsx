@@ -1,11 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#ff6b9d',
+};
 
 export const metadata: Metadata = {
   title: '7 Days, One Choice | Valentine Week 2026',
   description: 'A time-locked Valentine Week experience. February 7-14, 2026.',
   manifest: '/manifest.json',
-  themeColor: '#ff6b9d',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

@@ -1,11 +1,12 @@
 // AI Reflection Service
-// Uses Gemini API (primary) and MiniMax API (fallback)
+// Uses Gemini, OpenRouter, or MiniMax APIs
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize APIs
 const geminiKey = process.env.GEMINI_API_KEY;
+const openRouterKey = process.env.OPENROUTER_API_KEY;
 const miniMaxKey = process.env.MINIMAX_API_KEY;
 
 // Configure Gemini
@@ -22,6 +23,8 @@ const anthropic = miniMaxKey
 // Log API status
 if (geminiKey) {
   console.log(`Gemini API configured: ${geminiKey.substring(0, 5)}...`);
+} else if (openRouterKey) {
+  console.log(`OpenRouter API configured: ${openRouterKey.substring(0, 10)}...`);
 } else if (miniMaxKey) {
   console.log(`MiniMax API configured: ${miniMaxKey.substring(0, 5)}...`);
 } else {
@@ -215,7 +218,52 @@ async function generateGeminiReflection(prompt: string, day: number): Promise<st
   }
 }
 
-// Main function - tries Gemini first, then MiniMax, then fallback
+// Generate reflection using OpenRouter API
+async function generateOpenRouterReflection(prompt: string, day: number): Promise<string | null> {
+  if (!openRouterKey) {
+    return null;
+  }
+  
+  try {
+    console.log(`[Day ${day}] Generating OpenRouter reflection...`);
+    
+    // Using Claude Haiku (free model)
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://valentine-day-sandy-seven.vercel.app',
+        'X-Title': 'Valentine Week'
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3-haiku',
+        max_tokens: 500,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`OpenRouter error: ${response.status}`);
+    }
+    
+    const data = await response.json() as any;
+    const reflection = data.choices?.[0]?.message?.content || '';
+    
+    console.log(`[Day ${day}] OpenRouter reflection generated (${reflection.length} chars)`);
+    return reflection;
+  } catch (error: any) {
+    console.error(`[Day ${day}] OpenRouter API error:`, error.message);
+    return null;
+  }
+}
+
+// Main function - tries Gemini → OpenRouter → MiniMax → fallback
 export async function generateAIReflection(
   prompt: string,
   player1Answer: string,
@@ -230,7 +278,15 @@ export async function generateAIReflection(
     }
   }
   
-  // Try MiniMax as fallback
+  // Try OpenRouter as second option
+  if (openRouterKey) {
+    const result = await generateOpenRouterReflection(prompt, day);
+    if (result) {
+      return result;
+    }
+  }
+  
+  // Try MiniMax as third option
   if (miniMaxKey) {
     const result = await generateMiniMaxReflection(prompt, day);
     if (result) {

@@ -75,12 +75,13 @@ export default function ChocolateDayPage() {
       const data = await response.json();
       setSubmitted(true);
       
-      // Update dayStatus with our choice so MessageSlider works
+      // Update dayStatus with our choice and message so MessageSlider works
+      const myEntry = `${choice}${message ? ' - "' + message + '"' : ''}`;
       setDayStatus({
         submitted: true,
         partnerSubmitted: data.completed,
         reflection: data.reflection || null,
-        playerMessage: choice,
+        playerMessage: myEntry,
         partnerMessage: data.completed ? '' : 'Waiting for partner...'
       });
       

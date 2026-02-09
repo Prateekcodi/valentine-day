@@ -493,8 +493,11 @@ app.get('/api/day/:day/status', (req: Request, res: Response) => {
   } else if ([3, 5, 6].includes(day)) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Choice : !!dayProgress.data?.player2Choice;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Choice : !!dayProgress.data?.player1Choice;
-    playerMessage = isPlayer1 ? dayProgress.data?.player1Choice : dayProgress.data?.player2Choice;
-    partnerMessage = isPlayer1 ? dayProgress.data?.player2Choice : dayProgress.data?.player1Choice;
+    // Combine choice + message for display
+    const p1Entry = dayProgress.data?.player1Choice + (dayProgress.data?.player1Message ? ' - "' + dayProgress.data?.player1Message + '"' : '');
+    const p2Entry = dayProgress.data?.player2Choice + (dayProgress.data?.player2Message ? ' - "' + dayProgress.data?.player2Message + '"' : '');
+    playerMessage = isPlayer1 ? p1Entry : p2Entry;
+    partnerMessage = isPlayer1 ? p2Entry : p1Entry;
   } else if ([4, 7].includes(day)) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Data : !!dayProgress.data?.player2Data;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Data : !!dayProgress.data?.player1Data;

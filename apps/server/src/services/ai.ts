@@ -206,7 +206,7 @@ async function generateOpenRouterReflection(prompt: string, day: number): Promis
         'X-Title': 'Valentine Week AI'
       },
       body: JSON.stringify({
-        model: 'z-ai/glm-4.5-air:free',
+        model: 'arcee-ai/trinity-large-preview:free',
         max_tokens: 500,
         messages: [
           {

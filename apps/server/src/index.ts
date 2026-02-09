@@ -36,18 +36,48 @@ app.use(express.json());
 // In-memory storage (exported for socket handlers)
 export const rooms = new Map<string, any>();
 
-// Clean markdown formatting
+// Clean markdown formatting and remove incomplete text
 function cleanMarkdown(text: string): string {
   let cleaned = text.replace(/\r\n/g, '\n');
+  
+  // Remove markdown formatting
   cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
   cleaned = cleaned.replace(/(?!\S)\*(\*?)(?!\S)/g, '');
   cleaned = cleaned.replace(/`(.+?)`/g, '$1');
   cleaned = cleaned.replace(/^#+\s+/gm, '');
   cleaned = cleaned.replace(/^\s*[-*]{3,}\s*$/gm, '');
   cleaned = cleaned.replace(/^\s*[•*+-]\s+/gm, '');
+  
+  // Fix em-dashes that break sentences
+  cleaned = cleaned.replace(/—{2,}/g, '—');
+  cleaned = cleaned.replace(/"\s*—\s*"/g, '"—"');
+  
+  // Remove incomplete sentences (sentences that end with lowercase or common connectors)
+  const sentences = cleaned.split(/[.!?]+\s*/);
+  const validSentences: string[] = [];
+  
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+    
+    // Skip very short fragments or incomplete thoughts
+    if (trimmed.length < 20) continue;
+    if (trimmed.endsWith(',')) continue;
+    if (trimmed.endsWith(':')) continue;
+    if (trimmed.endsWith(';')) continue;
+    if (trimmed.match(/^(and|but|or|so|then|because|since|while|although|though|if|when|where|who|what|which|how|why)\s/i)) continue;
+    if (trimmed.match(/\s(then|and|or|but|so)$/i)) continue;
+    
+    validSentences.push(trimmed);
+  }
+  
+  cleaned = validSentences.join('. ') + '.';
+  
+  // Clean up whitespace
   cleaned = cleaned.replace(/\s{2,}/g, ' ');
   cleaned = cleaned.replace(/^\s*$/gm, '');
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
   return cleaned.trim();
 }
 

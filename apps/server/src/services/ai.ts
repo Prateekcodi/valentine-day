@@ -20,50 +20,90 @@ if (miniMaxKey) {
   console.log('No AI API keys found - using fallback reflections');
 }
 
-// Calculate love percentage based on message quality and effort
-function calculateLovePercentage(p1Answer: string, p2Answer: string): number {
-  const avgLength = (p1Answer.length + p2Answer.length) / 2;
+// Analyze message sentiment and content honesty
+function analyzeMessages(p1Answer: string, p2Answer: string): {
+  loveScore: number;
+  honestyScore: number;
+  tone: 'positive' | 'neutral' | 'negative' | 'mixed';
+  summary: string;
+} {
+  const combined = (p1Answer + ' ' + p2Answer).toLowerCase();
   
-  // Base score around 70-80%
-  let score = 70;
+  // Negative/hurtful words to detect
+  const negativeWords = ['bhag', 'pagal', 'chutiya', 'madarchod', 'fuck', 'shit', 'hell', 'hate', 'leave', 'go away', 'dont love', "don't love", '废物', '傻瓜', '滚', '不爱'];
+  const positiveWords = ['love', 'care', 'miss', 'beautiful', 'sweet', 'dear', 'baby', 'prateek', 'nidhi', 'happy', 'together', 'always'];
   
-  // Bonus for meaningful length (15-150 chars is ideal)
-  if (avgLength >= 15 && avgLength <= 150) {
-    score += 10;
+  let negativeCount = 0;
+  let positiveCount = 0;
+  
+  negativeWords.forEach(word => {
+    if (combined.includes(word)) negativeCount++;
+  });
+  
+  positiveWords.forEach(word => {
+    if (combined.includes(word)) positiveCount++;
+  });
+  
+  // Calculate scores
+  let loveScore = 50; // Neutral baseline
+  let honestyScore = 80;
+  let tone: 'positive' | 'neutral' | 'negative' | 'mixed' = 'neutral';
+  let summary = '';
+  
+  if (negativeCount > 0 && positiveCount === 0) {
+    // Clearly negative or fighting
+    loveScore = Math.max(10, 50 - (negativeCount * 15));
+    honestyScore = 90;
+    tone = 'negative';
+    summary = 'Today\'s conversation had a negative or playful fighting tone. The messages suggest some tension or teasing that might need attention.';
+  } else if (negativeCount > 0 && positiveCount > 0) {
+    // Mixed - could be playful or genuine conflict
+    loveScore = 50 + (positiveCount * 5) - (negativeCount * 5);
+    honestyScore = 75;
+    tone = 'mixed';
+    summary = 'Today\'s conversation was mixed - some positive words and some negative or teasing words. This could be playful banter or genuine tension.';
+  } else if (positiveCount > 0) {
+    // Positive messages
+    loveScore = 60 + (positiveCount * 10);
+    honestyScore = 85;
+    tone = 'positive';
+    summary = 'Today\'s conversation showed genuine positive feelings and care between you two.';
+  } else {
+    // Neutral/no strong indicators
+    loveScore = 55;
+    summary = 'Today\'s conversation was relatively neutral. The messages didn\'t strongly express love or negativity.';
   }
   
-  // Bonus for longer, thoughtful responses
-  if (avgLength > 100) {
-    score += 5;
-  }
+  // Clamp scores
+  loveScore = Math.max(5, Math.min(99, loveScore));
+  honestyScore = Math.max(50, Math.min(99, honestyScore));
   
-  // Random variation for authenticity (85-98%)
-  score = Math.min(98, Math.max(85, score + Math.floor(Math.random() * 10) - 5));
-  
-  return score;
+  return { loveScore, honestyScore, tone, summary };
 }
 
-// Calculate star rating (1-5)
-function calculateStarRating(p1Answer: string, p2Answer: string): number {
-  const avgLength = (p1Answer.length + p2Answer.length) / 2;
-  
-  let stars = 4;
-  
-  if (avgLength >= 20 && avgLength <= 150) {
-    stars = 5;
-  }
-  
-  if (avgLength < 15) {
-    stars = 3;
-  }
-  
-  return stars;
+// Calculate love percentage based on ACTUAL content analysis
+function calculateLovePercentage(p1Answer: string, p2Answer: string): number {
+  const analysis = analyzeMessages(p1Answer, p2Answer);
+  return analysis.loveScore;
+}
+
+// Calculate honesty score
+function calculateHonestyScore(p1Answer: string, p2Answer: string): number {
+  const analysis = analyzeMessages(p1Answer, p2Answer);
+  return analysis.honestyScore;
+}
+
+// Get tone description
+function getToneDescription(p1Answer: string, p2Answer: string): string {
+  const analysis = analyzeMessages(p1Answer, p2Answer);
+  return analysis.summary;
 }
 
 // Fallback reflections when AI is unavailable
 function createFallbackReflection(day: number, player1Answer: string, player2Answer: string): string {
   const lovePercent = calculateLovePercentage(player1Answer, player2Answer);
-  const stars = calculateStarRating(player1Answer, player2Answer);
+  const honesty = calculateHonestyScore(player1Answer, player2Answer);
+  const toneDesc = getToneDescription(player1Answer, player2Answer);
   
   const dayNames: Record<number, string> = {
     1: 'Rose Day',
@@ -87,7 +127,14 @@ function createFallbackReflection(day: number, player1Answer: string, player2Ans
     8: '💝'
   };
   
-  return `★ Love Percentage: ${lovePercent}% ☆ Star Rating: ${stars}/5 stars ${emojis[day] || '❤️'}\n\nDay ${day}: ${dayNames[day] || 'Valentine Week'}\n\nYour messages:\n"${player1Answer}"\n"${player2Answer}"\n\nYour connection is special. Keep nurturing it! 💗`;
+  return `★ Love Score: ${lovePercent}% ☆ Honesty: ${honesty}% ${emojis[day] || '❤️'}
+
+Day ${day}: ${dayNames[day] || 'Valentine Week'}
+
+"${player1Answer}"
+"${player2Answer}"
+
+${toneDesc}`;
 }
 
 // Generate reflection using MiniMax API

@@ -31,22 +31,19 @@ Length: 40-60 words
   2: `
 You are evaluating messages between two people on "Propose Day."
 
-Evaluate based on:
-- Sincerity and authenticity
-- Clarity of intention
-- Emotional honesty
-- Calmness (not desperation or intensity)
+Your job is to be COMPLETELY HONEST about what the messages actually say.
 
-Do NOT reward:
-- Grandiose promises
-- Cliché phrases
-- Pressure or intensity
-- Generic statements
+Evaluate and respond TRUTHFULLY:
+- What do these messages actually express?
+- If they contain negative or hurtful words, acknowledge that directly
+- If they contain positive words, acknowledge that
+- Do NOT make up romantic interpretations that aren't there
+- Do NOT pretend negative words are "playful teasing" unless it's clearly a joke between them
 
-Respond with a gentle reflection on what these messages reveal about their connection.
+BE HONEST. These are real people who need honest feedback.
 
-Tone: Warm, insightful, non-judgmental
-Length: 60-80 words
+Tone: Honest, direct, constructive
+Length: 50-80 words
   `,
   3: `
 You are reflecting on chocolate choices made between two partners.

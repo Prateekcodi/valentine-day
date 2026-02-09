@@ -9,12 +9,12 @@ interface SoundOption {
 }
 
 const SOUND_OPTIONS: SoundOption[] = [
-  { id: 'piano', name: 'Romantic Piano', emoji: '🎹', url: 'https://cdn.pixabay.com/download/audio/2022/02/10/audio_d0a13f69d2.mp3?filename=piano-moment-111154.mp3' },
-  { id: 'rain', name: 'Gentle Rain', emoji: '🌧️', url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_07b2d5040c.mp3?filename=rain-112020.mp3' },
-  { id: 'waterfall', name: 'Waterfall', emoji: '💧', url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_8b25ba5b4c.mp3?filename=waterfall-19088.mp3' },
-  { id: 'fire', name: 'Fireplace', emoji: '🔥', url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_0f5d4d72e9.mp3?filename=fire-crackle-1562.mp3' },
-  { id: 'birds', name: 'Forest Birds', emoji: '🐦', url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_1229dbfa2d.mp3?filename=forest-birds-12158.mp3' },
-  { id: 'ocean', name: 'Ocean Waves', emoji: '🌊', url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_9c6c38c6e2.mp3?filename=ocean-waves-12861.mp3' },
+  { id: 'piano', name: 'Romantic Piano', emoji: '🎹', url: '' },
+  { id: 'rain', name: 'Gentle Rain', emoji: '🌧️', url: '' },
+  { id: 'waterfall', name: 'Waterfall', emoji: '💧', url: '' },
+  { id: 'fire', name: 'Fireplace', emoji: '🔥', url: '' },
+  { id: 'birds', name: 'Forest Birds', emoji: '🐦', url: '' },
+  { id: 'ocean', name: 'Ocean Waves', emoji: '🌊', url: '' },
 ];
 
 interface SoundPlayerProps {
@@ -22,7 +22,7 @@ interface SoundPlayerProps {
 }
 
 export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
+  const [isPlaying, setIsPlaying] = useState(false); // Always start paused for user-initiated play
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.4);
   const [currentSound, setCurrentSound] = useState(SOUND_OPTIONS[0]);
@@ -68,7 +68,9 @@ export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
     }
   }, [volume, isMuted]);
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
 
   return (
     <div

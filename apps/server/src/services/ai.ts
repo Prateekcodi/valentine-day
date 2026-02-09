@@ -206,7 +206,7 @@ async function generateOpenRouterReflection(prompt: string, day: number): Promis
         'X-Title': 'Valentine Week AI'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp',
+        model: 'stepfun/step-3.5-flash:free',
         max_tokens: 500,
         messages: [
           {

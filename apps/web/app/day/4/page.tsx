@@ -95,7 +95,7 @@ export default function Day4Page() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-50 via-peach-50 to-orange-100">
       {/* Sound player */}
-      <SoundPlayer autoPlay={false} />
+      <SoundPlayer autoPlay={true} />
       
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={DAY_NUMBER} className="p-8 text-center">

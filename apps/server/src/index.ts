@@ -300,10 +300,21 @@ app.get('/api/day/2/status', (req: Request, res: Response) => {
 
   const dayProgress = room.progress[1];
   const isPlayer1 = room.player1?.id === playerId;
+  
   const hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Message : !!dayProgress.data?.player2Message;
   const hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Message : !!dayProgress.data?.player1Message;
-
-  res.json({ submitted: hasThisPlayerSubmitted || false, partnerSubmitted: hasPartnerSubmitted || false, reflection: dayProgress.aiReflection || null, completed: dayProgress.completed });
+  
+  const player1Message = dayProgress.data?.player1Message || null;
+  const player2Message = dayProgress.data?.player2Message || null;
+  
+  res.json({
+    submitted: hasThisPlayerSubmitted || false,
+    partnerSubmitted: hasPartnerSubmitted || false,
+    reflection: dayProgress.aiReflection || null,
+    completed: dayProgress.completed,
+    playerMessage: isPlayer1 ? player1Message : player2Message,
+    partnerMessage: isPlayer1 ? player2Message : player1Message
+  });
 });
 
 // Generic day submission
@@ -367,19 +378,34 @@ app.get('/api/day/:day/status', (req: Request, res: Response) => {
   const isPlayer1 = room.player1?.id === playerId;
 
   let hasThisPlayerSubmitted = false, hasPartnerSubmitted = false;
+  let playerMessage: string | null = null;
+  let partnerMessage: string | null = null;
 
   if (day === 2) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Message : !!dayProgress.data?.player2Message;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Message : !!dayProgress.data?.player1Message;
+    playerMessage = isPlayer1 ? dayProgress.data?.player1Message : dayProgress.data?.player2Message;
+    partnerMessage = isPlayer1 ? dayProgress.data?.player2Message : dayProgress.data?.player1Message;
   } else if ([3, 5, 6].includes(day)) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Choice : !!dayProgress.data?.player2Choice;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Choice : !!dayProgress.data?.player1Choice;
+    playerMessage = isPlayer1 ? dayProgress.data?.player1Choice : dayProgress.data?.player2Choice;
+    partnerMessage = isPlayer1 ? dayProgress.data?.player2Choice : dayProgress.data?.player1Choice;
   } else if ([4, 7].includes(day)) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Data : !!dayProgress.data?.player2Data;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Data : !!dayProgress.data?.player1Data;
+    playerMessage = isPlayer1 ? JSON.stringify(dayProgress.data?.player1Data) : JSON.stringify(dayProgress.data?.player2Data);
+    partnerMessage = isPlayer1 ? JSON.stringify(dayProgress.data?.player2Data) : JSON.stringify(dayProgress.data?.player1Data);
   }
 
-  res.json({ submitted: hasThisPlayerSubmitted || false, partnerSubmitted: hasPartnerSubmitted || false, reflection: dayProgress.aiReflection || null, completed: dayProgress.completed });
+  res.json({
+    submitted: hasThisPlayerSubmitted || false,
+    partnerSubmitted: hasPartnerSubmitted || false,
+    reflection: dayProgress.aiReflection || null,
+    completed: dayProgress.completed,
+    playerMessage,
+    partnerMessage
+  });
 });
 
 // Start server

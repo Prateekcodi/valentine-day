@@ -113,7 +113,7 @@ export default function LandingPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
       
       {/* Sound player */}
-      <SoundPlayer autoPlay={false} />
+      <SoundPlayer autoPlay={true} />
       
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-64 h-64 bg-rose-300/30 rounded-full blur-3xl animate-float" />

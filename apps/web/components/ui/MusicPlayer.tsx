@@ -241,7 +241,7 @@ export function DayPageWrapper({ children, day, showMusic = true }: DayPageWrapp
       </div>
 
       {/* Music player */}
-      {showMusic && <MusicPlayer autoPlay={false} />}
+      {showMusic && <MusicPlayer autoPlay={true} />}
 
       {/* Noise texture overlay */}
       <div

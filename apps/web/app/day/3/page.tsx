@@ -103,7 +103,7 @@ export default function ChocolateDayPage() {
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, ' + theme.secondary + ' 0%, ' + theme.primary + '20 100%)' }}>
       {/* Sound player */}
-      <SoundPlayer autoPlay={false} />
+      <SoundPlayer autoPlay={true} />
       
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={dayNumber} className="p-8 text-center">

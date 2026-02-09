@@ -76,7 +76,7 @@ export default function RoomPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
       
       {/* Sound player */}
-      <SoundPlayer autoPlay={false} />
+      <SoundPlayer autoPlay={true} />
       
       <div className="relative z-10 container max-w-4xl mx-auto px-4 py-8">
         {/* Header */}

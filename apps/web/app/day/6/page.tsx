@@ -69,6 +69,16 @@ export default function Day6Page() {
       });
       const data = await res.json();
       setSubmitted(true);
+      
+      // Update dayStatus with our affection so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerAffection: affection,
+        partnerAffection: data.completed ? dayStatus?.partnerAffection || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -155,11 +165,11 @@ export default function Day6Page() {
             </div>
           ) : (
             <div className="space-y-6">
-              {dayStatus?.playerAffection && dayStatus?.partnerAffection && (
+              {dayStatus?.playerAffection && (
                 <div className="mb-6">
                   <MessageSlider
-                    player1Message={dayStatus.playerAffection}
-                    player2Message={dayStatus.partnerAffection}
+                    player1Message={dayStatus.playerAffection || ''}
+                    player2Message={dayStatus.partnerAffection || 'Waiting for partner...'}
                     player1Name={localStorage.getItem('playerName') || 'You'}
                     player2Name="Partner"
                   />

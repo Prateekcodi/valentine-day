@@ -72,6 +72,16 @@ export default function Day7Page() {
       });
       const data = await res.json();
       setSubmitted(true);
+      
+      // Update dayStatus with our need so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerNeed: need,
+        partnerNeed: data.completed ? dayStatus?.partnerNeed || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -146,11 +156,11 @@ export default function Day7Page() {
             </div>
           ) : (
             <div className="space-y-6">
-              {dayStatus?.playerNeed && dayStatus?.partnerNeed && (
+              {dayStatus?.playerNeed && (
                 <div className="mb-6">
                   <MessageSlider
-                    player1Message={dayStatus.playerNeed}
-                    player2Message={dayStatus.partnerNeed}
+                    player1Message={dayStatus.playerNeed || ''}
+                    player2Message={dayStatus.partnerNeed || 'Waiting for partner...'}
                     player1Name={localStorage.getItem('playerName') || 'You'}
                     player2Name="Partner"
                   />

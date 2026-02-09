@@ -107,6 +107,15 @@ export default function ProposeDayPage() {
 
       setSubmitted(true);
       
+      // Update dayStatus with our message so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerMessage: message,
+        partnerMessage: data.completed ? dayStatus?.partnerMessage || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -194,11 +203,11 @@ export default function ProposeDayPage() {
           ) : (
             <div className="space-y-6">
               {/* Message slider to see each other's messages */}
-              {dayStatus?.playerMessage && dayStatus?.partnerMessage && (
+              {dayStatus?.playerMessage && (
                 <div className="mb-6">
                   <MessageSlider
-                    player1Message={dayStatus.playerMessage}
-                    player2Message={dayStatus.partnerMessage}
+                    player1Message={dayStatus.playerMessage || ''}
+                    player2Message={dayStatus.partnerMessage || 'Waiting for partner...'}
                     player1Name={playerName}
                     player2Name="Partner"
                   />

@@ -70,6 +70,16 @@ export default function Day5Page() {
       });
       const data = await res.json();
       setSubmitted(true);
+      
+      // Update dayStatus with our message so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerPromise: message,
+        partnerPromise: data.completed ? dayStatus?.partnerPromise || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -129,11 +139,11 @@ export default function Day5Page() {
           ) : (
             <div className="space-y-6">
               {/* Message slider */}
-              {dayStatus?.playerPromise && dayStatus?.partnerPromise && (
+              {dayStatus?.playerPromise && (
                 <div className="mb-6">
                   <MessageSlider
                     player1Message={dayStatus.playerPromise}
-                    player2Message={dayStatus.partnerPromise}
+                    player2Message={dayStatus.partnerPromise || 'Waiting for partner...'}
                     player1Name={localStorage.getItem('playerName') || 'You'}
                     player2Name="Partner"
                   />

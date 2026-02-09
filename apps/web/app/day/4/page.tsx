@@ -74,6 +74,18 @@ export default function Day4Page() {
       });
       const data = await res.json();
       setSubmitted(true);
+      
+      // Update dayStatus with our data so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerOffering: offering,
+        playerReceiving: receiving,
+        partnerOffering: data.completed ? dayStatus?.partnerOffering || '' : '',
+        partnerReceiving: data.completed ? dayStatus?.partnerReceiving || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -174,11 +186,11 @@ export default function Day4Page() {
           ) : (
             <div className="space-y-6">
               {/* Message slider */}
-              {dayStatus?.playerOffering && dayStatus?.partnerOffering && (
+              {dayStatus?.playerOffering && (
                 <div className="mb-6">
                   <MessageSlider
                     player1Message={`I offer: ${dayStatus.playerOffering}, I receive: ${dayStatus.playerReceiving}`}
-                    player2Message={`They offer: ${dayStatus.partnerOffering}, They receive: ${dayStatus.partnerReceiving}`}
+                    player2Message={dayStatus.partnerOffering ? `They offer: ${dayStatus.partnerOffering}, They receive: ${dayStatus.partnerReceiving}` : 'Waiting for partner...'}
                     player1Name={localStorage.getItem('playerName') || 'You'}
                     player2Name="Partner"
                   />

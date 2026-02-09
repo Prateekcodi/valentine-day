@@ -75,6 +75,16 @@ export default function ChocolateDayPage() {
       });
       const data = await response.json();
       setSubmitted(true);
+      
+      // Update dayStatus with our choice so MessageSlider works
+      setDayStatus({
+        submitted: true,
+        partnerSubmitted: data.completed,
+        reflection: data.reflection || null,
+        playerChoice: choice,
+        partnerChoice: data.completed ? dayStatus?.partnerChoice || '' : ''
+      });
+      
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
@@ -169,11 +179,11 @@ export default function ChocolateDayPage() {
           ) : (
             <div className="space-y-6">
               {/* Message slider to see each other's choices */}
-              {dayStatus?.playerChoice && dayStatus?.partnerChoice && (
+              {dayStatus?.playerChoice && (
                 <div className="mb-6">
                   <MessageSlider
-                    player1Message={dayStatus.playerChoice}
-                    player2Message={dayStatus.partnerChoice}
+                    player1Message={dayStatus.playerChoice || ''}
+                    player2Message={dayStatus.partnerChoice || 'Waiting for partner...'}
                     player1Name={localStorage.getItem('playerName') || 'You'}
                     player2Name="Partner"
                   />

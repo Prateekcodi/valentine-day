@@ -29,9 +29,18 @@ function analyzeMessages(p1Answer: string, p2Answer: string): {
 } {
   const combined = (p1Answer + ' ' + p2Answer).toLowerCase();
   
-  // Negative/hurtful words to detect
-  const negativeWords = ['bhag', 'pagal', 'chutiya', 'madarchod', 'fuck', 'shit', 'hell', 'hate', 'leave', 'go away', 'dont love', "don't love", '废物', '傻瓜', '滚', '不爱'];
-  const positiveWords = ['love', 'care', 'miss', 'beautiful', 'sweet', 'dear', 'baby', 'prateek', 'nidhi', 'happy', 'together', 'always'];
+  // Hindi negative words (comprehensive list)
+  const negativeWords = [
+    'bhag', 'pagal', 'chutiya', 'madarchod', 'fuck', 'shit', 'hell', 'hate', 
+    'leave', 'go away', 'dont love', "don't love", '废物', '傻瓜', '滚', '不爱',
+    'nahi', 'nhi', 'nahi karta', 'nhi karta', 'pyaar nahi', 'pyar nahi',
+    'bahg jaa', 'bhag jaa', 'nikal', 'jao', 'jhho', 'uttar', 'chale jao',
+    'besharmi', 'sharam', 'mujhse', 'mere se', 'tere se',
+    'sorry',  // Saying sorry without context can be negative
+    'pagli', 'pagli', 'bewakoof', 'idiot', 'dummy'
+  ];
+  
+  const positiveWords = ['love', 'care', 'miss', 'beautiful', 'sweet', 'dear', 'baby', 'prateek', 'nidhi', 'happy', 'together', 'always', 'pyar', 'pyaar', 'dil', 'dost', 'sacchi', 'sach'];
   
   let negativeCount = 0;
   let positiveCount = 0;
@@ -51,21 +60,27 @@ function analyzeMessages(p1Answer: string, p2Answer: string): {
   let summary = '';
   
   if (negativeCount > 0 && positiveCount === 0) {
-    // Clearly negative or fighting
-    loveScore = Math.max(10, 50 - (negativeCount * 15));
-    honestyScore = 90;
+    // Clearly negative - being honest about it
+    loveScore = Math.max(5, 50 - (negativeCount * 12));
+    honestyScore = 95;
     tone = 'negative';
-    summary = 'Today\'s conversation had a negative or playful fighting tone. The messages suggest some tension or teasing that might need attention.';
+    summary = `⚠️ TODAY\'S MESSAGES CONTAIN NEGATIVE CONTENT. The messages say things like "go away" or "I don\'t love you." This is NOT a healthy expression of love. Please communicate with respect and kindness.`;
+  } else if (negativeCount > positiveCount) {
+    // More negative than positive
+    loveScore = Math.max(10, 50 + (positiveCount * 5) - (negativeCount * 10));
+    honestyScore = 80;
+    tone = 'negative';
+    summary = '⚠️ The messages today lean negative. There are signs of tension or teasing that borders on hurtful. Please be kind to each other.';
   } else if (negativeCount > 0 && positiveCount > 0) {
     // Mixed - could be playful or genuine conflict
-    loveScore = 50 + (positiveCount * 5) - (negativeCount * 5);
+    loveScore = 50 + (positiveCount * 8) - (negativeCount * 5);
     honestyScore = 75;
     tone = 'mixed';
-    summary = 'Today\'s conversation was mixed - some positive words and some negative or teasing words. This could be playful banter or genuine tension.';
+    summary = 'Today\'s conversation was mixed - some positive words and some negative or teasing words. If this is playful banter, make sure both are comfortable.';
   } else if (positiveCount > 0) {
     // Positive messages
-    loveScore = 60 + (positiveCount * 10);
-    honestyScore = 85;
+    loveScore = 60 + (positiveCount * 8);
+    honestyScore = 90;
     tone = 'positive';
     summary = 'Today\'s conversation showed genuine positive feelings and care between you two.';
   } else {
@@ -75,7 +90,7 @@ function analyzeMessages(p1Answer: string, p2Answer: string): {
   }
   
   // Clamp scores
-  loveScore = Math.max(5, Math.min(99, loveScore));
+  loveScore = Math.max(5, Math.min(95, loveScore));
   honestyScore = Math.max(50, Math.min(99, honestyScore));
   
   return { loveScore, honestyScore, tone, summary };

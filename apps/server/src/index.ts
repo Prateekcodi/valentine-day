@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { generateRoomId, generatePlayerId } from './utils';
 import { setupSocketHandlers } from './socket/handlers';
+import { connectToDatabase, saveRoom, getRoom, initializeProgress, Room, DayProgress } from './services/database';
 import { generateAIReflection } from './services/ai';
 
 dotenv.config();
@@ -33,7 +34,7 @@ const io = new Server(httpServer, {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// In-memory storage (exported for socket handlers)
+// In-memory storage for Socket.IO (kept for real-time operations)
 export const rooms = new Map<string, any>();
 
 // Clean markdown formatting and remove incomplete text
@@ -52,7 +53,7 @@ function cleanMarkdown(text: string): string {
   cleaned = cleaned.replace(/—{2,}/g, '—');
   cleaned = cleaned.replace(/"\s*—\s*"/g, '"—"');
   
-  // Remove incomplete sentences (sentences that end with lowercase or common connectors)
+  // Remove incomplete sentences
   const sentences = cleaned.split(/[.!?]+\s*/);
   const validSentences: string[] = [];
   
@@ -60,7 +61,6 @@ function cleanMarkdown(text: string): string {
     const trimmed = sentence.trim();
     if (!trimmed) continue;
     
-    // Skip very short fragments or incomplete thoughts
     if (trimmed.length < 20) continue;
     if (trimmed.endsWith(',')) continue;
     if (trimmed.endsWith(':')) continue;
@@ -81,7 +81,7 @@ function cleanMarkdown(text: string): string {
   return cleaned.trim();
 }
 
-// Helper function to generate reflection using multi-AI system
+// Helper function to generate reflection using AI service
 async function generateReflection(day: number, dayData: any): Promise<string> {
   console.log(`\n${'═'.repeat(50)}`);
   console.log(`[Day ${day}] 🎯 GENERATING REFLECTION`);
@@ -93,25 +93,24 @@ async function generateReflection(day: number, dayData: any): Promise<string> {
 
   if (day === 1) {
     prompt = `You are writing a heartfelt, detailed reflection for Rose Day between ${p1Name} and ${p2Name}.
-
+  
 They just accepted a rose together, marking the beginning of their Valentine Week journey.
-
-Write a warm, poetic, and emotionally rich reflection that:
+  
+Write a warm, poetic, emotionally rich reflection (200-400 words) that:
 - Celebrates this quiet beginning
-- Reflects on the significance of choosing to start this journey together
-- Acknowledges the vulnerability and hope in this first step
-- Feels intimate and personal
-- Is 200-300 words long
+- Reflects on what this first step means for their connection
+- Acknowledges the intention behind showing up
+- Makes them feel seen and valued
+- Feels intimate and personal to their unique bond
 
-Style: Poetic, warm, intimate, celebrating small moments.`;
+Style: Tender, warm, intimate, celebrating their connection.`;
   } else if (day === 2) {
-    prompt = `You are writing a heartfelt, detailed reflection for Propose Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a heartfelt reflection for Propose Day between ${p1Name} and ${p2Name}.
 
-${p1Name}'s message: "${dayData.player1Message || ''}"
-${p2Name}'s message: "${dayData.player2Message || ''}"
+${p1Name} wrote: "${dayData.player1Message || ''}"
+${p2Name} wrote: "${dayData.player2Message || ''}"
 
 Write a warm, poetic, emotionally rich reflection (200-400 words) that:
-- Celebrates what these messages reveal about their connection
 - Reflects on the honesty and vulnerability they shared
 - Acknowledges the uniqueness of their bond
 - Feels intimate and personal to them
@@ -134,26 +133,25 @@ Write a simple, warm reflection (100-200 words) that:
 
 Style: Sweet, simple, warm, like a friendly chat.`;
   } else if (day === 4) {
-    prompt = `You are writing a heartfelt, detailed reflection for Teddy Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a heartfelt reflection for Teddy Day between ${p1Name} and ${p2Name}.
 
 ${p1Name} offers comfort through: "${dayData.player1Data?.offering || ''}" and receives comfort through: "${dayData.player1Data?.receiving || ''}"
 ${p2Name} offers comfort through: "${dayData.player2Data?.offering || ''}" and receives comfort through: "${dayData.player2Data?.receiving || ''}"
 
-Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+Write a warm, poetic reflection (200-400 words) that:
 - Celebrates how they understand each other's comfort needs
 - Reflects on the beauty of knowing how to be there for each other
 - Makes them feel seen and understood
 - Acknowledges the tender moments they share
-- Feels intimate and personal to their unique bond
 
 Style: Tender, warm, intimate, celebrating their emotional connection.`;
   } else if (day === 5) {
-    prompt = `You are writing a heartfelt, detailed reflection for Promise Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a heartfelt reflection for Promise Day between ${p1Name} and ${p2Name}.
 
 ${p1Name}'s promise: "${dayData.player1Data || ''}"
 ${p2Name}'s promise: "${dayData.player2Data || ''}"
 
-Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+Write a warm, poetic reflection (200-400 words) that:
 - Celebrates the sincerity and thoughtfulness of their promises
 - Reflects on what these commitments reveal about their bond
 - Makes them feel seen and valued
@@ -162,12 +160,12 @@ Write a warm, poetic, emotionally rich reflection (200-400 words) that:
 
 Style: Sincere, warm, intimate, celebrating their commitment.`;
   } else if (day === 6) {
-    prompt = `You are writing a heartfelt, detailed reflection for Kiss Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a heartfelt reflection for Kiss Day between ${p1Name} and ${p2Name}.
 
 ${p1Name} expressed affection: "${dayData.player1Data || ''}"
 ${p2Name} expressed affection: "${dayData.player2Data || ''}"
 
-Write a warm, poetic, emotionally rich reflection (200-400 words) that:
+Write a warm, poetic reflection (200-400 words) that:
 - Celebrates how they express love and affection
 - Reflects on the tenderness they share
 - Makes them feel seen and adored
@@ -176,94 +174,131 @@ Write a warm, poetic, emotionally rich reflection (200-400 words) that:
 
 Style: Tender, warm, intimate, celebrating their love.`;
   } else if (day === 7) {
-    prompt = `You are writing a heartfelt, detailed reflection for Hug Day between ${p1Name} and ${p2Name}.
+    prompt = `You are writing a heartfelt reflection for Hug Day between ${p1Name} and ${p2Name}.
 
-${p1Name} needs support: "${dayData.player1Data || ''}" and ${p2Name} responded: "${dayData.player2Data || ''}"
-${p2Name} needs support: "${dayData.player2Data || ''}" and ${p1Name} responded: "${dayData.player1Data || ''}"
+${p1Name} shared: "${JSON.stringify(dayData.player1Data || {})}"
+${p2Name} shared: "${JSON.stringify(dayData.player2Data || {})}"
 
-Write a warm, poetic, emotionally rich reflection (200-400 words) that:
-- Celebrates how they support each other
-- Reflects on the emotional safety they've created together
-- Makes them feel seen and supported
-- Acknowledges the trust they have in each other
-- Feels intimate and personal to their unique bond
+Write a warm, poetic reflection (200-400 words) that:
+- Celebrates their emotional vulnerability and trust
+- Reflects on how they support each other
+- Makes them feel deeply understood
+- Acknowledges the power of their connection
+- Feels intimate and meaningful to their relationship
 
-Style: Warm, tender, intimate, celebrating their emotional connection.`;
-  } else if (day === 8 && Array.isArray(dayData)) {
-    prompt = `You are writing the final, most heartfelt reflection for Valentine's Day between ${p1Name} and ${p2Name}.
+Style: Tender, warm, intimate, celebrating their emotional bond.`;
+  } else {
+    prompt = `You are writing the final Valentine's Day reflection for ${p1Name} and ${p2Name} after their complete 7-day journey together.
 
-They have completed an entire week of meaningful moments together - Rose Day through Hug Day. Each day revealed something beautiful about their connection.
+Review what they shared each day:
+- Day 1 (Rose): Both accepted the rose
+- Day 2 (Propose): ${dayData.day2?.player1Message || ''} / ${dayData.day2?.player2Message || ''}
+- Day 3 (Chocolate): ${dayData.day3?.player1Choice || ''} / ${dayData.day3?.player2Choice || ''}
+- Day 4 (Teddy): ${dayData.day4?.player1Data?.offering || ''} / ${dayData.day4?.player2Data?.offering || ''}
+- Day 5 (Promise): ${dayData.day5?.player1Data || ''} / ${dayData.day5?.player2Data || ''}
+- Day 6 (Kiss): ${dayData.day6?.player1Data || ''} / ${dayData.day6?.player2Data || ''}
+- Day 7 (Hug): ${dayData.day7?.player1Data?.need || ''} / ${dayData.day7?.player2Data?.need || ''}
 
-Write an emotional, detailed finale reflection (300-500 words) that:
+Write a comprehensive, heartfelt final reflection (300-500 words) that:
 - Celebrates their complete journey together
-- Reflects on how love showed up in each small moment
-- Acknowledges the depth of their connection
-- Makes them feel incredibly special and loved
-- Feels like a beautiful conclusion to their romantic week
-- Tells them this love is rare and precious
+- Reflects on how their connection has grown
+- Acknowledges their unique bond and love
+- Makes them feel deeply seen and cherished
+- Honors the effort and vulnerability they shared
+- Feels like a beautiful conclusion to their Valentine's Week
 
-Style: Romantic, heartfelt, celebratory, deeply emotional, making them feel like the luckiest people to have found each other.`;
+Style: Poetic, warm, celebratory, deeply meaningful.`;
   }
 
-  const p1Answer = dayData.player1Message || dayData.player1Data || dayData.player1Choice || '';
-  const p2Answer = dayData.player2Message || dayData.player2Data || dayData.player2Choice || '';
+  console.log(`[Day ${day}] 📝 Prompt prepared, calling AI...`);
 
-  const reflection = await generateAIReflection(prompt, p1Answer, p2Answer, day);
-  return cleanMarkdown(reflection);
+  try {
+    // Prepare answers for the AI service
+    const player1Answer = prompt;
+    const player2Answer = prompt;
+    
+    const reflection = await generateAIReflection(prompt, player1Answer, player2Answer, day);
+    
+    if (reflection && reflection.length > 50) {
+      const cleaned = cleanMarkdown(reflection);
+      console.log(`[Day ${day}] ✨ AI Reflection generated (${cleaned.length} chars)`);
+      return cleaned;
+    } else {
+      console.log(`[Day ${day}] ⚠️ AI returned empty, using fallback`);
+      return `Your connection shines through in every moment you share. ${p1Name} and ${p2Name}, this week has shown the depth of your bond. Keep cherishing each other. 💕`;
+    }
+  } catch (error: any) {
+    console.error(`[Day ${day}] ❌ AI Error: ${error.message}`);
+    return `Your connection shines through in every moment you share. ${p1Name} and ${p2Name}, this week has shown the depth of your bond. Keep cherishing each other. 💕`;
+  }
 }
 
-// Socket.IO handlers
-setupSocketHandlers(io);
+// Load room from database into memory
+async function loadRoomToMemory(roomId: string): Promise<any | null> {
+  const room = await getRoom(roomId.toUpperCase());
+  if (room) {
+    rooms.set(roomId.toUpperCase(), room);
+  }
+  return room;
+}
 
-// REST API endpoints
+// Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.post('/api/room/create', (req: Request, res: Response) => {
+// Create room
+app.post('/api/room/create', async (req: Request, res: Response) => {
   const { playerName } = req.body;
-
+  
   if (!playerName || playerName.trim().length < 2) {
     return res.status(400).json({ error: 'Name must be at least 2 characters' });
   }
 
   const roomId = generateRoomId();
   const playerId = generatePlayerId();
+  const trimmedName = playerName.trim();
 
-  const room = {
-    id: roomId,
-    player1: { id: playerId, name: playerName.trim(), joinedAt: new Date().toISOString() },
+  const room: Room = {
+    id: roomId.toUpperCase(),
+    player1: { id: playerId, name: trimmedName, joinedAt: new Date() },
     player2: null,
-    progress: Array.from({ length: 8 }, (_, i) => ({
-      day: i + 1, completed: false, data: null, aiReflection: null, completedAt: null,
-    })),
-    createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
+    progress: initializeProgress(),
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000) // 8 days
   };
 
-  rooms.set(roomId, room);
-  res.json({ roomId, playerId });
+  await saveRoom(room);
+  rooms.set(roomId.toUpperCase(), room);
+
+  console.log(`\n${'🌹'.repeat(15)}`);
+  console.log(`Room ${roomId.toUpperCase()} created by ${trimmedName}`);
+  console.log(`${'🌹'.repeat(15)}\n`);
+
+  res.json({ roomId: roomId.toUpperCase(), playerId });
 });
 
-app.post('/api/room/join', (req: Request, res: Response) => {
+// Join room
+app.post('/api/room/join', async (req: Request, res: Response) => {
   const { roomId, playerName } = req.body;
-
+  
   if (!roomId || roomId.length !== 6) {
     return res.status(400).json({ error: 'Invalid room code' });
   }
-
+  
   if (!playerName || playerName.trim().length < 2) {
     return res.status(400).json({ error: 'Name must be at least 2 characters' });
   }
 
-  const room = rooms.get(roomId.toUpperCase());
-
+  let room = await loadRoomToMemory(roomId);
+  
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
 
   const trimmedName = playerName.trim();
 
+  // Check if rejoining
   if (room.player1 && room.player1.name.toLowerCase() === trimmedName.toLowerCase()) {
     return res.json({ roomId: roomId.toUpperCase(), playerId: room.player1.id, rejoined: true, message: 'Welcome back!' });
   }
@@ -279,17 +314,22 @@ app.post('/api/room/join', (req: Request, res: Response) => {
   const playerId = generatePlayerId();
 
   if (!room.player1) {
-    room.player1 = { id: playerId, name: trimmedName, joinedAt: new Date().toISOString() };
+    room.player1 = { id: playerId, name: trimmedName, joinedAt: new Date() };
   } else {
-    room.player2 = { id: playerId, name: trimmedName, joinedAt: new Date().toISOString() };
+    room.player2 = { id: playerId, name: trimmedName, joinedAt: new Date() };
   }
 
+  await saveRoom(room);
   rooms.set(roomId.toUpperCase(), room);
   res.json({ roomId: roomId.toUpperCase(), playerId, rejoined: false });
 });
 
-app.get('/api/room/:roomId', (req: Request, res: Response) => {
-  const room = rooms.get(req.params.roomId.toUpperCase());
+app.get('/api/room/:roomId', async (req: Request, res: Response) => {
+  let room = rooms.get(req.params.roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(req.params.roomId);
+  }
+  
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -304,7 +344,11 @@ app.post('/api/day/1/accept', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Room ID and Player ID are required' });
   }
 
-  const room = rooms.get(roomId.toUpperCase());
+  let room = rooms.get(roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -319,26 +363,35 @@ app.post('/api/day/1/accept', async (req: Request, res: Response) => {
   const bothAccepted = dayProgress.data.player1Accepted && dayProgress.data.player2Accepted;
 
   if (bothAccepted) {
+    dayProgress.data.player1Name = room.player1?.name;
+    dayProgress.data.player2Name = room.player2?.name;
     const reflection = await generateReflection(1, dayProgress.data);
     dayProgress.completed = true;
     dayProgress.aiReflection = reflection;
-    dayProgress.completedAt = new Date().toISOString();
+    dayProgress.completedAt = new Date();
+    
+    await saveRoom(room);
+    rooms.set(roomId.toUpperCase(), room);
     
     io.to(roomId.toUpperCase()).emit('day-completed', { day: 1, reflection, nextDayUnlocked: true });
   } else {
+    rooms.set(roomId.toUpperCase(), room);
     io.to(roomId.toUpperCase()).emit('partner-acted', { playerId, day: 1, action: 'accept-rose' });
   }
 
-  rooms.set(roomId.toUpperCase(), room);
   res.json({ completed: bothAccepted, reflection: bothAccepted ? dayProgress.aiReflection : null, partnerAccepted: bothAccepted });
 });
 
 // Day 1: Status
-app.get('/api/day/1/status', (req: Request, res: Response) => {
+app.get('/api/day/1/status', async (req: Request, res: Response) => {
   const roomId = req.query.room as string;
   const playerId = req.query.playerId as string;
 
-  const room = rooms.get(roomId?.toUpperCase());
+  let room = rooms.get(roomId?.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -359,7 +412,11 @@ app.post('/api/day/2/submit', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const room = rooms.get(roomId.toUpperCase());
+  let room = rooms.get(roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -370,7 +427,7 @@ app.post('/api/day/2/submit', async (req: Request, res: Response) => {
   const isPlayer1 = room.player1?.id === playerId;
   if (isPlayer1) {
     dayProgress.data.player1Message = message;
-    dayProgress.data.player1Name = room.player1.name;
+    dayProgress.data.player1Name = room.player1?.name;
   } else {
     dayProgress.data.player2Message = message;
     dayProgress.data.player2Name = room.player2?.name || 'Player 2';
@@ -382,22 +439,30 @@ app.post('/api/day/2/submit', async (req: Request, res: Response) => {
     const reflection = await generateReflection(2, dayProgress.data);
     dayProgress.completed = true;
     dayProgress.aiReflection = reflection;
-    dayProgress.completedAt = new Date().toISOString();
+    dayProgress.completedAt = new Date();
+    
+    await saveRoom(room);
+    rooms.set(roomId.toUpperCase(), room);
+    
     io.to(roomId.toUpperCase()).emit('day-completed', { day: 2, reflection, nextDayUnlocked: true });
   } else {
+    rooms.set(roomId.toUpperCase(), room);
     io.to(roomId.toUpperCase()).emit('partner-acted', { playerId, day: 2, action: 'submit-message' });
   }
 
-  rooms.set(roomId.toUpperCase(), room);
   res.json({ completed: bothSubmitted, reflection: bothSubmitted ? dayProgress.aiReflection : null, partnerSubmitted: bothSubmitted });
 });
 
 // Day 2: Status
-app.get('/api/day/2/status', (req: Request, res: Response) => {
+app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const roomId = req.query.room as string;
   const playerId = req.query.playerId as string;
 
-  const room = rooms.get(roomId?.toUpperCase());
+  let room = rooms.get(roomId?.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -421,7 +486,7 @@ app.get('/api/day/2/status', (req: Request, res: Response) => {
   });
 });
 
-// Generic day submission
+// Generic day submission (handles days 3-8)
 app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   const day = parseInt(req.params.day);
   const { roomId, playerId, data } = req.body;
@@ -430,7 +495,11 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid request parameters' });
   }
 
-  const room = rooms.get(roomId.toUpperCase());
+  let room = rooms.get(roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -457,23 +526,31 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
     const reflection = await generateReflection(day, dayProgress.data);
     dayProgress.completed = true;
     dayProgress.aiReflection = reflection;
-    dayProgress.completedAt = new Date().toISOString();
+    dayProgress.completedAt = new Date();
+    
+    await saveRoom(room);
+    rooms.set(roomId.toUpperCase(), room);
+    
     io.to(roomId.toUpperCase()).emit('day-completed', { day, reflection, nextDayUnlocked: day < 8 });
   } else {
+    rooms.set(roomId.toUpperCase(), room);
     io.to(roomId.toUpperCase()).emit('partner-acted', { playerId, day, action: 'submit-data' });
   }
 
-  rooms.set(roomId.toUpperCase(), room);
   res.json({ completed: bothSubmitted, reflection: bothSubmitted ? dayProgress.aiReflection : null, partnerSubmitted: bothSubmitted });
 });
 
 // Generic day status
-app.get('/api/day/:day/status', (req: Request, res: Response) => {
+app.get('/api/day/:day/status', async (req: Request, res: Response) => {
   const day = parseInt(req.params.day);
   const roomId = req.query.room as string;
   const playerId = req.query.playerId as string;
 
-  const room = rooms.get(roomId?.toUpperCase());
+  let room = rooms.get(roomId?.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
   if (!room) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -515,13 +592,28 @@ app.get('/api/day/:day/status', (req: Request, res: Response) => {
   });
 });
 
+// Setup Socket.IO handlers
+setupSocketHandlers(io);
+
 // Start server
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`\n${'═'.repeat(60)}`);
-  console.log('💕 Valentine Week Server');
-  console.log(`${'═'.repeat(60)}`);
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Socket.IO ready for connections`);
-  console.log(`${'═'.repeat(60)}\n`);
-});
+
+async function startServer() {
+  try {
+    // Connect to MongoDB first
+    await connectToDatabase();
+    
+    httpServer.listen(PORT, () => {
+      console.log(`\n${'═'.repeat(60)}`);
+      console.log('💕 Valentine Week Server');
+      console.log(`🌐 Running on http://localhost:${PORT}`);
+      console.log(`📅 Date: ${new Date().toLocaleDateString()}`);
+      console.log(`${'═'.repeat(60)}\n`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

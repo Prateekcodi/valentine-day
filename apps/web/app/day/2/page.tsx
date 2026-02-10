@@ -48,13 +48,17 @@ export default function ProposeDayPage() {
     
     checkExistingSubmission();
     
+    // Poll every 2 seconds for partner data (faster)
     const pollInterval = setInterval(() => {
       if (!reflection) {
+        checkExistingSubmission();
+      } else if (submitted && partnerSubmitted && !dayStatus?.partnerMessage) {
+        // Keep polling for partner data even after completion
         checkExistingSubmission();
       } else {
         clearInterval(pollInterval);
       }
-    }, 5000);
+    }, 2000);
     
     return () => clearInterval(pollInterval);
   }, []);
@@ -75,6 +79,23 @@ export default function ProposeDayPage() {
           if (data.reflection) {
             setReflection(data.reflection);
           }
+        }
+        
+        // If we have player data, update the slider
+        if (data.playerMessage) {
+          setDayStatus((prev: DayStatus | null) => ({
+            ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
+            playerMessage: data.playerMessage,
+            partnerMessage: data.partnerMessage || prev?.partnerMessage || ''
+          }));
+        }
+        
+        // If partner submitted, update their data
+        if (data.partnerMessage) {
+          setDayStatus((prev: DayStatus | null) => ({
+            ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
+            partnerMessage: data.partnerMessage
+          }));
         }
       }
     } catch (error) {
@@ -107,18 +128,18 @@ export default function ProposeDayPage() {
 
       setSubmitted(true);
       
-      // Update dayStatus with our message so MessageSlider works
-      setDayStatus({
+      // Update our own data immediately
+      setDayStatus((prev: DayStatus | null) => ({
+        ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
         submitted: true,
-        partnerSubmitted: data.completed,
-        reflection: data.reflection || null,
-        playerMessage: message,
-        partnerMessage: data.completed ? dayStatus?.partnerMessage || '' : ''
-      });
+        playerMessage: message
+      }));
       
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
+        // Fetch partner data after a short delay
+        setTimeout(() => checkExistingSubmission(), 1000);
       }
     } catch (error) {
       console.error('Failed to submit:', error);
@@ -138,7 +159,6 @@ export default function ProposeDayPage() {
   const dayInfo = DAYS[1];
   const theme = getThemeColors(dayInfo.theme);
   const playerName = localStorage.getItem('playerName') || 'Player';
-  const partnerName = dayStatus?.partnerSubmitted ? 'Partner' : '';
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary}20 100%)` }}>
@@ -203,16 +223,14 @@ export default function ProposeDayPage() {
           ) : (
             <div className="space-y-6">
               {/* Message slider to see each other's messages */}
-              {dayStatus?.playerMessage && (
-                <div className="mb-6">
-                  <MessageSlider
-                    player1Message={dayStatus.playerMessage || ''}
-                    player2Message={dayStatus.partnerMessage || 'Waiting for partner...'}
-                    player1Name={playerName}
-                    player2Name="Partner"
-                  />
-                </div>
-              )}
+              <div className="mb-6">
+                <MessageSlider
+                  player1Message={dayStatus?.playerMessage || 'Your message'}
+                  player2Message={dayStatus?.partnerMessage || 'Waiting for partner...'}
+                  player1Name={playerName}
+                  player2Name="Partner"
+                />
+              </div>
               
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>

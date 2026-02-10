@@ -9,6 +9,14 @@ import { DAYS, getThemeColors } from '@/lib/datelock';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+interface DayStatusType {
+  submitted: boolean;
+  partnerSubmitted: boolean;
+  reflection: string | null;
+  playerMessage?: string;
+  partnerMessage?: string;
+}
+
 export default function ChocolateDayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -22,7 +30,7 @@ export default function ChocolateDayPage() {
   const [mounted, setMounted] = useState(false);
   const [choice, setChoice] = useState('comfort');
   const [message, setMessage] = useState('');
-  const [dayStatus, setDayStatus] = useState<any>(null);
+  const [dayStatus, setDayStatus] = useState<DayStatusType | null>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -34,10 +42,19 @@ export default function ChocolateDayPage() {
     }
     
     checkExistingSubmission();
+    
+    // Poll every 2 seconds for partner data (faster)
     const pollInterval = setInterval(function() {
-      if (!reflection) checkExistingSubmission();
-      else clearInterval(pollInterval);
-    }, 10000);
+      if (!reflection) {
+        checkExistingSubmission();
+      } else if (submitted && partnerSubmitted && !dayStatus?.partnerMessage) {
+        // Keep polling for partner data even after completion
+        checkExistingSubmission();
+      } else {
+        clearInterval(pollInterval);
+      }
+    }, 2000);
+    
     return function() { clearInterval(pollInterval); };
   }, []);
 
@@ -46,12 +63,33 @@ export default function ChocolateDayPage() {
       const playerId = localStorage.getItem('playerId');
       const response = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (playerId || ''));
       const data = await response.json();
+      
+      // Update dayStatus with all data
       setDayStatus(data);
+      
       if (data.submitted) {
         setSubmitted(true);
+        
         if (data.partnerSubmitted) {
           setPartnerSubmitted(true);
           if (data.reflection) setReflection(data.reflection);
+        }
+        
+        // If we have player data, update the slider
+        if (data.playerMessage) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
+            playerMessage: data.playerMessage,
+            partnerMessage: data.partnerMessage || prev?.partnerMessage || ''
+          }));
+        }
+        
+        // If partner submitted, update their data
+        if (data.partnerMessage) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
+            partnerMessage: data.partnerMessage
+          }));
         }
       }
     } catch (error) {
@@ -69,27 +107,25 @@ export default function ChocolateDayPage() {
         body: JSON.stringify({ 
           roomId: roomId, 
           playerId: playerId, 
-          data: { choice, message }  // Wrap in data object for generic API
+          data: { choice, message }
         }),
       });
       const data = await response.json();
       setSubmitted(true);
       
-      // Update dayStatus with our choice and message so MessageSlider works
+      // Update our own data immediately
       const myEntry = `${choice}${message ? ' - "' + message + '"' : ''}`;
-      setDayStatus({
+      setDayStatus((prev: DayStatusType | null) => ({
+        ...(prev || { submitted: false, partnerSubmitted: false, reflection: null }),
         submitted: true,
-        partnerSubmitted: data.completed,
-        reflection: data.reflection || null,
-        playerMessage: myEntry,
-        partnerMessage: data.completed ? '' : 'Waiting for partner...'
-      });
+        playerMessage: myEntry
+      }));
       
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
-        // Fetch latest status to get partner's choice
-        setTimeout(() => checkExistingSubmission(), 500);
+        // Fetch partner data after a short delay
+        setTimeout(() => checkExistingSubmission(), 1000);
       }
     } catch (error) {
       console.error('Failed to submit:', error);
@@ -176,7 +212,7 @@ export default function ChocolateDayPage() {
               {/* Message slider to see each other's choices */}
               <div className="mb-6">
                 <MessageSlider
-                  player1Message={dayStatus?.playerMessage ? `${dayStatus.playerMessage} - "${message}"` : `${choice} - "${message}"`}
+                  player1Message={dayStatus?.playerMessage || `${choice} - "${message}"`}
                   player2Message={dayStatus?.partnerMessage || 'Waiting for partner...'}
                   player1Name={localStorage.getItem('playerName') || 'You'}
                   player2Name="Partner"

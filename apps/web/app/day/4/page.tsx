@@ -26,7 +26,19 @@ export default function Day4Page() {
   const [offering, setOffering] = useState('talk');
   const [receiving, setReceiving] = useState('talk');
   const [message, setMessage] = useState('');
-  const [dayStatus, setDayStatus] = useState<any>(null);
+  interface DayStatusType {
+    submitted?: boolean;
+    partnerSubmitted?: boolean;
+    reflection?: string;
+    playerOffering?: string;
+    playerReceiving?: string;
+    playerMessage?: string;
+    partnerOffering?: string;
+    partnerReceiving?: string;
+    partnerMessage?: string;
+  }
+  
+  const [dayStatus, setDayStatus] = useState<DayStatusType | null>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -38,7 +50,19 @@ export default function Day4Page() {
     }
     
     checkExisting();
-    const poll = setInterval(function() { if (!reflection) checkExisting(); else clearInterval(poll); }, 10000);
+    
+    // Poll every 2 seconds for partner data (faster)
+    const poll = setInterval(function() {
+      if (!reflection) {
+        checkExisting();
+      } else if (submitted && partnerSubmitted && !dayStatus?.partnerOffering) {
+        // Keep polling for partner data even after completion
+        checkExisting();
+      } else {
+        clearInterval(poll);
+      }
+    }, 2000);
+    
     return function() { clearInterval(poll); };
   }, []);
 
@@ -47,12 +71,36 @@ export default function Day4Page() {
       const pid = localStorage.getItem('playerId');
       const res = await fetch(API_URL + '/api/day/' + DAY_NUMBER + '/status?room=' + roomId + '&playerId=' + (pid || ''));
       const data = await res.json();
+      
+      // Update dayStatus with all data
       setDayStatus(data);
+      
       if (data.submitted) {
         setSubmitted(true);
+        
         if (data.partnerSubmitted) {
           setPartnerSubmitted(true);
           if (data.reflection) setReflection(data.reflection);
+        }
+        
+        // If we have player data, update the slider
+        if (data.playerOffering) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || {}),
+            playerOffering: data.playerOffering,
+            playerReceiving: data.playerReceiving,
+            partnerOffering: data.partnerOffering || prev?.partnerOffering || '',
+            partnerReceiving: data.partnerReceiving || prev?.partnerReceiving || ''
+          }));
+        }
+        
+        // If partner submitted, update their data
+        if (data.partnerOffering) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || {}),
+            partnerOffering: data.partnerOffering,
+            partnerReceiving: data.partnerReceiving
+          }));
         }
       }
     } catch (e) { console.error('Check failed:', e); }
@@ -75,22 +123,20 @@ export default function Day4Page() {
       const data = await res.json();
       setSubmitted(true);
       
-      // Update dayStatus with our data so MessageSlider works
-      setDayStatus({
+      // Update our own data immediately
+      setDayStatus((prev: DayStatusType | null) => ({
+        ...(prev || {}),
         submitted: true,
-        partnerSubmitted: data.completed,
-        reflection: data.reflection || null,
         playerOffering: offering,
         playerReceiving: receiving,
-        partnerOffering: data.completed ? dayStatus?.partnerOffering || '' : '',
-        partnerReceiving: data.completed ? dayStatus?.partnerReceiving || '' : ''
-      });
+        playerMessage: message
+      }));
       
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
-        // Fetch latest status to get partner's data
-        setTimeout(() => checkExisting(), 500);
+        // Fetch partner data after a short delay
+        setTimeout(() => checkExisting(), 1000);
       }
     } catch (e) { console.error('Submit failed:', e); }
     finally { setLoading(false); }
@@ -187,17 +233,15 @@ export default function Day4Page() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Message slider */}
-              {dayStatus?.playerOffering && (
-                <div className="mb-6">
-                  <MessageSlider
-                    player1Message={`I offer: ${dayStatus.playerOffering}, I receive: ${dayStatus.playerReceiving}`}
-                    player2Message={dayStatus.partnerOffering ? `They offer: ${dayStatus.partnerOffering}, They receive: ${dayStatus.partnerReceiving}` : 'Waiting for partner...'}
-                    player1Name={localStorage.getItem('playerName') || 'You'}
-                    player2Name="Partner"
-                  />
-                </div>
-              )}
+              {/* Message slider - show both messages */}
+              <div className="mb-6">
+                <MessageSlider
+                  player1Message={dayStatus?.playerOffering ? `I offer: ${dayStatus.playerOffering}, I receive: ${dayStatus.playerReceiving}${dayStatus.playerMessage ? '. ' + dayStatus.playerMessage : ''}` : 'Your comfort style'}
+                  player2Message={dayStatus?.partnerOffering ? `They offer: ${dayStatus.partnerOffering}, They receive: ${dayStatus.partnerReceiving}${dayStatus.partnerMessage ? '. ' + dayStatus.partnerMessage : ''}` : 'Waiting for partner...'}
+                  player1Name={localStorage.getItem('playerName') || 'You'}
+                  player2Name="Partner"
+                />
+              </div>
               
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>

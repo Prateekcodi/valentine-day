@@ -8,6 +8,16 @@ import { SoundPlayer, MessageSlider } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+interface DayStatusType {
+  submitted?: boolean;
+  partnerSubmitted?: boolean;
+  reflection?: string;
+  playerNeed?: string;
+  playerResponse?: string;
+  partnerNeed?: string;
+  partnerResponse?: string;
+}
+
 export default function Day7Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -21,7 +31,7 @@ export default function Day7Page() {
   const [mounted, setMounted] = useState(false);
   const [need, setNeed] = useState('');
   const [response, setResponse] = useState('');
-  const [dayStatus, setDayStatus] = useState<any>(null);
+  const [dayStatus, setDayStatus] = useState<DayStatusType | null>(null);
 
   useEffect(function() {
     setMounted(true);
@@ -33,7 +43,19 @@ export default function Day7Page() {
     }
     
     checkExisting();
-    const poll = setInterval(function() { if (!reflection) checkExisting(); else clearInterval(poll); }, 10000);
+    
+    // Poll every 2 seconds for partner data (faster)
+    const poll = setInterval(function() {
+      if (!reflection) {
+        checkExisting();
+      } else if (submitted && partnerSubmitted && !dayStatus?.partnerNeed) {
+        // Keep polling for partner data even after completion
+        checkExisting();
+      } else {
+        clearInterval(poll);
+      }
+    }, 2000);
+    
     return function() { clearInterval(poll); };
   }, []);
 
@@ -42,12 +64,36 @@ export default function Day7Page() {
       const pid = localStorage.getItem('playerId');
       const res = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (pid || ''));
       const data = await res.json();
+      
+      // Update dayStatus with all data
       setDayStatus(data);
+      
       if (data.submitted) {
         setSubmitted(true);
+        
         if (data.partnerSubmitted) {
           setPartnerSubmitted(true);
           if (data.reflection) setReflection(data.reflection);
+        }
+        
+        // If we have player data, update the slider
+        if (data.playerNeed) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || {}),
+            playerNeed: data.playerNeed,
+            playerResponse: data.playerResponse,
+            partnerNeed: data.partnerNeed || prev?.partnerNeed || '',
+            partnerResponse: data.partnerResponse || prev?.partnerResponse || ''
+          }));
+        }
+        
+        // If partner submitted, update their data
+        if (data.partnerNeed) {
+          setDayStatus((prev: DayStatusType | null) => ({
+            ...(prev || {}),
+            partnerNeed: data.partnerNeed,
+            partnerResponse: data.partnerResponse
+          }));
         }
       }
     } catch (e) { console.error('Check failed:', e); }
@@ -73,20 +119,19 @@ export default function Day7Page() {
       const data = await res.json();
       setSubmitted(true);
       
-      // Update dayStatus with our need so MessageSlider works
-      setDayStatus({
+      // Update our own data immediately
+      setDayStatus((prev: DayStatusType | null) => ({
+        ...(prev || {}),
         submitted: true,
-        partnerSubmitted: data.completed,
-        reflection: data.reflection || null,
         playerNeed: need,
-        partnerNeed: data.completed ? dayStatus?.partnerNeed || '' : ''
-      });
+        playerResponse: response
+      }));
       
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
-        // Fetch latest status to get partner's data
-        setTimeout(() => checkExisting(), 500);
+        // Fetch partner data after a short delay
+        setTimeout(() => checkExisting(), 1000);
       }
     } catch (e) { console.error('Submit failed:', e); }
     finally { setLoading(false); }
@@ -158,16 +203,15 @@ export default function Day7Page() {
             </div>
           ) : (
             <div className="space-y-6">
-              {dayStatus?.playerNeed && (
-                <div className="mb-6">
-                  <MessageSlider
-                    player1Message={dayStatus.playerNeed || ''}
-                    player2Message={dayStatus.partnerNeed || 'Waiting for partner...'}
-                    player1Name={localStorage.getItem('playerName') || 'You'}
-                    player2Name="Partner"
-                  />
-                </div>
-              )}
+              {/* Message slider - show both support styles */}
+              <div className="mb-6">
+                <MessageSlider
+                  player1Message={dayStatus?.playerNeed ? `I need: ${dayStatus.playerNeed}. I give: ${dayStatus.playerResponse || ''}` : 'Your support style'}
+                  player2Message={dayStatus?.partnerNeed ? `They need: ${dayStatus.partnerNeed}. They give: ${dayStatus.partnerResponse || ''}` : 'Waiting for partner...'}
+                  player1Name={localStorage.getItem('playerName') || 'You'}
+                  player2Name="Partner"
+                />
+              </div>
               
               <GlassCard variant="subtle" className="p-6">
                 <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>

@@ -5,7 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { generateRoomId, generatePlayerId } from './utils';
 import { setupSocketHandlers } from './socket/handlers';
-import { connectToDatabase, saveRoom, getRoom, initializeProgress, Room, DayProgress } from './services/database';
+import { connectToDatabase, saveRoom, getRoom, initializeProgress, Room, DayProgress, isMongoAvailable } from './services/database';
 import { generateAIReflection } from './services/ai';
 
 dotenv.config();
@@ -599,21 +599,17 @@ setupSocketHandlers(io);
 const PORT = process.env.PORT || 3001;
 
 async function startServer() {
-  try {
-    // Connect to MongoDB first
-    await connectToDatabase();
-    
-    httpServer.listen(PORT, () => {
-      console.log(`\n${'═'.repeat(60)}`);
-      console.log('💕 Valentine Week Server');
-      console.log(`🌐 Running on http://localhost:${PORT}`);
-      console.log(`📅 Date: ${new Date().toLocaleDateString()}`);
-      console.log(`${'═'.repeat(60)}\n`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+  // Try to connect to MongoDB (optional - will work without it)
+  const db = await connectToDatabase();
+  
+  httpServer.listen(PORT, () => {
+    console.log(`\n${'═'.repeat(60)}`);
+    console.log('💕 Valentine Week Server');
+    console.log(`🌐 Running on http://localhost:${PORT}`);
+    console.log(`📅 Date: ${new Date().toLocaleDateString()}`);
+    console.log(`💾 Storage: ${isMongoAvailable() ? 'MongoDB (persistent)' : 'Memory (non-persistent)'}`);
+    console.log(`${'═'.repeat(60)}\n`);
+  });
 }
 
 startServer();

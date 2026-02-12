@@ -20,7 +20,7 @@ npm install
 ```bash
 npm start
 ```
-
+/
 ## Step 3: Add Environment Variables
 
 Click **"Variables"** tab and add:

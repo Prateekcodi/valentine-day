@@ -5,18 +5,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies
+# Install dependencies (including tsx for runtime)
 RUN npm ci
 
-# Copy TypeScript config and source
-COPY tsconfig.json ./
+# Copy source
 COPY src ./src
-
-# Build TypeScript
-RUN npm run build
 
 # Expose port
 EXPOSE 3001
 
-# Start server
-CMD ["npm", "start"]
+# Start with tsx (runs TypeScript directly)
+CMD ["npx", "tsx", "src/index.ts"]

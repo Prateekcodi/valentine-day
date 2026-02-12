@@ -1,9 +1,8 @@
 {
   "$schema": "https://railway.app/schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "cd apps/server && npm install && npm run build",
-    "startCommand": "cd apps/server && npm start"
+    "builder": "DOCKER",
+    "dockerfilePath": "apps/server/Dockerfile"
   },
   "deploy": {
     "restartPolicy": "ON_FAILURE"

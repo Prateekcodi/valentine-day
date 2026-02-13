@@ -370,6 +370,19 @@ function SectionHead({ icon, title, subtitle }: { icon: string; title: string; s
 // 10. LOVE LETTER GENERATOR
 // ═══════════════════════════════════════════════════════════
 const LETTER_TEMPLATES = [
+  (n1: string, n2: string) => `My dearest ${n2 || "love"},
+
+Every time I read your message, mera dil literally buffer ho jaata hai. You say sunrise reminds you of me, but honestly, tum ho meri morning coffee.
+
+The way you keep me in the safest corner of your heart is sweet. I'm planning to occupy full storage, no uninstall option.
+
+You call me your home, and I can confirm: lifetime warranty + no rent + unlimited love supply from my side.
+
+In this lifetime, next lifetime, and even after all reboots of the universe, I'd still choose you, again and again...
+
+Forever yours (with extra hugs, bad jokes, and endless smiles),
+${n1 || "Your Love"}`,
+
   (n1: string, n2: string) => `My dearest ${n2 || "love"},\n\nEvery sunrise reminds me of you — warm, golden, impossible to look away from. In this lifetime and every one after, I would choose you again. The way you laugh, the way your eyes light up when you're happy — these are the things I keep locked in the safest corner of my heart.\n\nYou are not just my Valentine — you are my home.\n\nForever yours,\n${n1 || "Your Love"} 💕`,
   (n1: string, n2: string) => `To ${n2 || "the one I love"},\n\nI have searched every constellation for words worthy of you, and still the stars fall short. You are the poetry I never knew I needed, the song that plays in the quiet moments when the world goes still.\n\nIf love were a universe, you would be every star in it.\n\nAlways and infinitely,\n${n1 || "Your Love"} 🌟`,
   (n1: string, n2: string) => `Darling ${n2 || "heart"},\n\nSome people search their whole lives for what we have — this easy, beautiful, ridiculous love. I am grateful every single day that the universe was kind enough to write us into the same story.\n\nThank you for being you. For choosing me.\n\nYours in every season,\n${n1 || "Your Love"} 🌹`,
@@ -1272,6 +1285,7 @@ export default function Day8Page() {
 
   // Valentine features state
   const [opened, setOpened] = useState(false);
+  const [romanticSound, setRomanticSound] = useState<string | null>(null);
   const [romanticSound, setRomanticSound] = useState<string | null>(null);
   const [section, setSection] = useState("letter");
   const [unlocked, setUnlocked] = useState<string[]>(["first"]);

@@ -508,21 +508,22 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const dayProgress = room.progress[1];
   const isPlayer1 = room.player1?.id === playerId;
   
-  // Check ALL activities for Day 8 (10 activities total)
+  // Check ALL activities for Day 8 (require ALL 9 activities to be complete)
   const checkAllSubmitted = (isP1: boolean) => {
     const data = dayProgress.data || {};
     const p = isP1 ? 'player1' : 'player2';
-    return !!(
-      data[`${p}Letter`] || 
-      data[`${p}Lantern`] || 
-      (data[`${p}Promises`] && data[`${p}Promises`].length > 0) || 
-      data[`${p}Capsule`] || 
-      (data[`${p}Garden`] && data[`${p}Garden`].length > 0) || 
-      data[`${p}Quiz`] || 
-      data[`${p}Constellation`] || 
-      data[`${p}Fortune`] ||
-      data[`${p}Memory`]
-    );
+    // Check if ALL 9 activities are completed
+    const hasLetter = !!data[`${p}Letter`];
+    const hasLantern = !!data[`${p}Lantern`];
+    const hasPromises = !!(data[`${p}Promises`] && data[`${p}Promises`].length > 0);
+    const hasCapsule = !!data[`${p}Capsule`];
+    const hasGarden = !!(data[`${p}Garden`] && data[`${p}Garden`].length > 0);
+    const hasQuiz = !!data[`${p}Quiz`];
+    const hasConstellation = !!data[`${p}Constellation`];
+    const hasFortune = !!data[`${p}Fortune`];
+    const hasMemory = !!data[`${p}Memory`];
+    
+    return hasLetter && hasLantern && hasPromises && hasCapsule && hasGarden && hasQuiz && hasConstellation && hasFortune && hasMemory;
   };
   
   const hasThisPlayerSubmitted = isPlayer1 ? checkAllSubmitted(true) : checkAllSubmitted(false);

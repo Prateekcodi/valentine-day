@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering - don't cache
+export const dynamic = 'force-dynamic';
+
 // In-memory storage
 declare global {
   var __rooms: Map<string, any> | undefined;

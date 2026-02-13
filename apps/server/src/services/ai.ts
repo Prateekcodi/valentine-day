@@ -23,8 +23,9 @@ const miniMaxKey = process.env.MINIMAX_API_KEY;
 
 // Configure APIs only if keys exist
 const genAI = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
-const anthropic = miniMaxKey 
-  ? new Anthropic({ apiKey: miniMaxKey }) 
+const anthropicKey = process.env.ANTHROPIC_API_KEY;
+const anthropic = anthropicKey 
+  ? new Anthropic({ apiKey: anthropicKey }) 
   : null;
 
 // Log available APIs (show only first 5 chars, never full keys!)
@@ -509,7 +510,7 @@ async function generateGroqLoveLetter(senderName: string, recipientName: string)
 }
 
 async function generateMiniMaxLoveLetter(senderName: string, recipientName: string): Promise<string | null> {
-  if (!miniMaxKey || !anthropic) return null;
+  if (!anthropic) return null;
   
   try {
     const prompt = LOVE_LETTER_PROMPT

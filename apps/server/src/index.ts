@@ -247,6 +247,11 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Root route - prevents 404 on domain visit
+app.get('/', (req: Request, res: Response) => {
+  res.send('💕 Valentine Week Backend Running!\nAPI: /api/room/create');
+});
+
 // Create room
 app.post('/api/room/create', async (req: Request, res: Response) => {
   const { playerName } = req.body;

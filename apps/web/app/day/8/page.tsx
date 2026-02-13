@@ -1691,7 +1691,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
     URL.revokeObjectURL(url);
   };
 
-  // Achievement unlock
+  // Achievement unlock - now also submits to server
   const unlock = useCallback((id: string) => {
     setUnlocked(u => {
       if (u.includes(id)) return u;
@@ -1703,9 +1703,24 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
         setFireworks(true);
         setTimeout(() => { setPetalRain(false); setFireworks(false); }, 5000);
       }
+      // Submit achievements to server
+      const pid = localStorage.getItem('playerId');
+      if (pid && roomId) {
+        fetch(API_URL + '/api/day/8/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            roomId, 
+            playerId: pid, 
+            day: 8, 
+            action: 'achievements', 
+            data: { badges: nu } 
+          })
+        }).catch(e => console.error('Achievement submit failed:', e));
+      }
       return nu;
     });
-  }, []);
+  }, [roomId]);
 
   useEffect(() => { if (opened) unlock("first"); }, [opened]);
 

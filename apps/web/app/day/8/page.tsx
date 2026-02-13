@@ -8,7 +8,7 @@ import { SoundPlayer } from '@/components/ui/SoundPlayer';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Cinematic opening sound
-const CINEMATIC_SOUND = '/sound/freesound_community-chonology-of-love-6094.mp3';
+const CINEMATIC_SOUND = '/sound/lordsonny-cinematic-whoosh-reverse-161307.mp3';
 
 // ═══════════════════════════════════════════════════════════
 // PALETTE & COLORS

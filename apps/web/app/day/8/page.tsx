@@ -549,12 +549,12 @@ function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
 // 11. 3D MEMORY SCRAPBOOK
 // ═══════════════════════════════════════════════════════════
 const MEMORIES = [
-  { emoji: "🌅", front: "Our First Date", back: "The night we first talked until 3am and forgot the whole world existed 💕" },
-  { emoji: "🌹", front: "When We First Met", back: "You smiled at me and I knew — this person is going to change everything ✨" },
-  { emoji: "✈️", front: "Our First Trip", back: "Getting lost together and somehow finding the most beautiful place we'd ever seen 🗺️" },
-  { emoji: "🌧️", front: "Rainy Sunday", back: "Staying in, making coffee, watching the rain — the most perfect ordinary day 🍵" },
-  { emoji: "🎂", front: "Your Birthday", back: "Watching your face light up — that memory lives in my heart forever 🎉" },
-  { emoji: "💫", front: "Our Future", back: "Every dream I have now, you're in it. Every plan I make, it's us. Always us 💞" },
+  { emoji: "🌅", front: "Our First Chat", back: "Woh raat jab baat 3am tak chali, aur time ka concept hi khatam ho gaya 💕" },
+  { emoji: "📱", front: "That First Vibe", back: "Face nahi dekha, par vibe itni strong thi ki dil ne turant yes bol diya ✨" },
+  { emoji: "💬", front: "Endless Talks", back: "Good morning se good night tak chats — aur phir bhi topic khatam nahi hua 😄" },
+  { emoji: "🌧️", front: "Late Night Calls", back: "Silent raat, dheemi awaaz, aur bas tumhari baatein — pure comfort 🍵" },
+  { emoji: "🎂", front: "Your Birthday", back: "Door hokar bhi tumhari excitement feel hui — bina cake khaye bhi 🎉" },
+  { emoji: "💫", front: "Our Future", back: "Aaj face unseen hai, kal milna likha hai. Sapno mein toh hum already saath hain 💞" },
 ];
 
 function MemoryCard({ mem, index }: { mem: typeof MEMORIES[0]; index: number }) {

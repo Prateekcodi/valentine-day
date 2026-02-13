@@ -141,7 +141,7 @@ function ParticleUniverse() {
       {particles.map(p => (
         <div key={p.id} style={{
           position: 'absolute', left: `${p.x}%`, top: `${p.y}%`,
-          fontSize: p.size, opacity: p.opacity * 0.5,
+          fontSize: p.size, opacity: 0.6,
           animation: `particleFloat ${p.dur}s ${p.delay}s ease-in-out infinite`,
           userSelect: 'none', filter: 'blur(0.3px)',
         }}>{p.shape}</div>

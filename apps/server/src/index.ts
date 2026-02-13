@@ -871,6 +871,37 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
 // Setup Socket.IO handlers
 setupSocketHandlers(io);
 
+
+// Reset Day 8 progress (for retaking)
+app.post('/api/day/8/reset', async (req: Request, res: Response) => {
+  const { roomId } = req.body;
+  
+  if (!roomId) {
+    return res.status(400).json({ error: 'Room ID required' });
+  }
+  
+  let room = rooms.get(roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+  
+  if (!room) {
+    return res.status(404).json({ error: 'Room not found' });
+  }
+  
+  // Reset Day 8 progress (index 7)
+  room.progress[7] = {
+    completed: false,
+    unlocked: false,
+    data: {}
+  };
+  
+  await saveRoom(room);
+  rooms.set(roomId.toUpperCase(), room);
+  
+  res.json({ success: true, message: 'Day 8 reset successfully' });
+});
+
 // Start server
 const PORT = process.env.PORT || 3001;
 

@@ -608,6 +608,9 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   }
 
   if (bothSubmitted) {
+    // Set player names before generating reflection
+    dayProgress.data.player1Name = room.player1?.name;
+    dayProgress.data.player2Name = room.player2?.name;
     const reflection = await generateReflection(day, dayProgress.data);
     dayProgress.completed = true;
     dayProgress.aiReflection = reflection;

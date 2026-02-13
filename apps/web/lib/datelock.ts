@@ -35,7 +35,7 @@ export const DAYS: DayInfo[] = [
   { day: 5, date: new Date('2026-02-11'), name: 'Promise Day', theme: 'promise', emoji: '💍' },
   { day: 6, date: new Date('2026-02-12'), name: 'Kiss Day', theme: 'kiss', emoji: '💋' },
   { day: 7, date: new Date('2026-02-13'), name: 'Hug Day', theme: 'hug', emoji: '🤗' },
-  { day: 8, date: new Date('2026-02-14'), name: "Valentine's Day", theme: 'valentine', emoji: '💝' },
+  { day: 8, date: new Date('2026-02-13'), name: "Valentine's Day", theme: 'valentine', emoji: '💝' },
 ];
 
 export function getCurrentDayInfo(): DayInfo | null {

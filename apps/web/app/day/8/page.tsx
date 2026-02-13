@@ -372,20 +372,63 @@ function SectionHead({ icon, title, subtitle }: { icon: string; title: string; s
 const LETTER_TEMPLATES = [
   (n1: string, n2: string) => `My dearest ${n2 || "love"},
 
-Every time I read your message, mera dil literally buffer ho jaata hai. You say sunrise reminds you of me, but honestly, tum ho meri morning coffee.
+Har baar tumhara message padhte hi mera dil literally *buffering… please wait* mode mein chala jaata hai ❤️  
+Tum kehti ho sunrise reminds you of me, but sach bataun — **tum ho meri morning coffee**, bina tumhare main boot hi nahi hota ☕😌  
 
-The way you keep me in the safest corner of your heart is sweet. I'm planning to occupy full storage, no uninstall option.
+The way you keep me in the safest corner of your heart is cute, but FYI —
+main wahan **full storage occupy** karne aa raha hoon, no uninstall, no logout 😄💘  
 
-You call me your home, and I can confirm: lifetime warranty + no rent + unlimited love supply from my side.
+You call me your home, and official confirmation:
+**Lifetime warranty, zero rent, unlimited love supply** from my side 🏡❤️  
 
-In this lifetime, next lifetime, and even after all reboots of the universe, I'd still choose you, again and again...
+Is lifetime, next lifetime, aur universe ke har reboot ke baad bhi,
+I’d still choose *you* — bina terms & conditions padhe 🫶  
 
-Forever yours (with extra hugs, bad jokes, and endless smiles),
-${n1 || "Your Love"}`,
+Forever yours (with extra hugs, bad jokes, and unlimited smiles),
+${n1 || "Your Love"} 💖`,
 
-  (n1: string, n2: string) => `My dearest ${n2 || "love"},\n\nEvery sunrise reminds me of you — warm, golden, impossible to look away from. In this lifetime and every one after, I would choose you again. The way you laugh, the way your eyes light up when you're happy — these are the things I keep locked in the safest corner of my heart.\n\nYou are not just my Valentine — you are my home.\n\nForever yours,\n${n1 || "Your Love"} 💕`,
-  (n1: string, n2: string) => `To ${n2 || "the one I love"},\n\nI have searched every constellation for words worthy of you, and still the stars fall short. You are the poetry I never knew I needed, the song that plays in the quiet moments when the world goes still.\n\nIf love were a universe, you would be every star in it.\n\nAlways and infinitely,\n${n1 || "Your Love"} 🌟`,
-  (n1: string, n2: string) => `Darling ${n2 || "heart"},\n\nSome people search their whole lives for what we have — this easy, beautiful, ridiculous love. I am grateful every single day that the universe was kind enough to write us into the same story.\n\nThank you for being you. For choosing me.\n\nYours in every season,\n${n1 || "Your Love"} 🌹`,
+  (n1: string, n2: string) => `My dearest ${n2 || "love"},
+
+Every sunrise reminds me of you — warm, golden, aur thoda sa distracting (kyunki tum pe nazar hi atak jaati hai 😌).  
+Is lifetime mein kya, har lifetime mein main tumhe hi choose karunga, no second thoughts.  
+
+Tumhari hasi, tumhari khushi, aur woh sparkle jab tum smile karti ho —
+yeh sab maine apne dil ke **password-protected folder** mein save kar liya hai ❤️  
+
+You are not just my Valentine —
+**tum mera ghar ho, meri peace ho, aur meri favorite notification ho** 🫶  
+
+Forever yours,
+${n1 || "Your Love"} 💕`,
+
+  (n1: string, n2: string) => `To ${n2 || "the one I love"},
+
+Main words dhoondhne nikla tha tumhare liye,
+par tum itni perfect nikli ki dictionary bhi hang ho gayi 😅✨  
+
+Tum woh poetry ho jo bina padhe samajh aa jaaye,
+aur woh song ho jo bina play kiye hi dil mein bajta rahe 🎶  
+
+Agar love ek universe hota,
+toh tum hi uska centre hoti — baaki sab bas orbit karte 💫  
+
+Always and infinitely,
+${n1 || "Your Love"} 🌟`,
+
+  (n1: string, n2: string) => `Darling ${n2 || "heart"},
+
+Log poori zindagi dhoondhte hain jo humein itna naturally mil gaya —
+yeh easy, beautiful, thoda sa pagal sa love ❤️😄  
+
+Universe ne jab humein same story mein likha,
+tab se mujhe yaqeen ho gaya — plot perfect hai 😌  
+
+Thank you for being you.
+For choosing me.
+For tolerating my nonsense 😅  
+
+Yours in every season (and every mood),
+${n1 || "Your Love"} 🌹`,
 ];
 
 function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {

@@ -59,9 +59,10 @@ Instance Type: Free (will work for testing)
 3. Click "Add New Project" → "Import GitHub Repository"
 4. Select your repository
 5. Set Root Directory: `apps/web`
-6. Add Environment Variable:
+6. Add Environment Variables:
    ```
    NEXT_PUBLIC_API_URL = https://your-backend-url.onrender.com
+   NEXT_PUBLIC_SOCKET_URL = https://your-backend-url.onrender.com
    ```
    (Replace with your actual backend URL from Step 2)
 
@@ -77,7 +78,9 @@ After backend deploys, update frontend environment:
 1. Go to Vercel dashboard
 2. Select your project
 3. Settings → Environment Variables
-4. Update `NEXT_PUBLIC_API_URL` with your actual backend URL
+4. Update these variables with your actual backend URL:
+   - `NEXT_PUBLIC_API_URL` = your-backend-url
+   - `NEXT_PUBLIC_SOCKET_URL` = your-backend-url
 5. Redeploy (or it will auto-redeploy)
 
 ---

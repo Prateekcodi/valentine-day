@@ -578,6 +578,83 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   res.json({ completed: bothSubmitted, reflection: bothSubmitted ? dayProgress.aiReflection : null, partnerSubmitted: bothSubmitted });
 });
 
+// Save activity data (HTTP fallback for when WebSocket fails)
+app.post('/api/day/:day/activity', async (req: Request, res: Response) => {
+  const day = parseInt(req.params.day);
+  const { roomId, playerId, action, data } = req.body;
+
+  if (!roomId || !playerId || !action) {
+    return res.status(400).json({ error: 'Invalid request parameters' });
+  }
+
+  let room = rooms.get(roomId.toUpperCase());
+  if (!room) {
+    room = await loadRoomToMemory(roomId);
+  }
+
+  if (!room) {
+    return res.status(404).json({ error: 'Room not found' });
+  }
+
+  const dayProgress = room.progress[day - 1];
+  if (!dayProgress.data) dayProgress.data = {};
+
+  const isPlayer1 = room.player1?.id === playerId;
+
+  // Handle Day 8 activities
+  if (day === 8) {
+    if (action === 'letter') {
+      if (isPlayer1) dayProgress.data.player1Letter = data?.message;
+      else dayProgress.data.player2Letter = data?.message;
+    } else if (action === 'lantern') {
+      if (isPlayer1) dayProgress.data.player1Lantern = data?.wish;
+      else dayProgress.data.player2Lantern = data?.wish;
+    } else if (action === 'promise') {
+      if (isPlayer1) {
+        if (!dayProgress.data.player1Promises) dayProgress.data.player1Promises = [];
+        dayProgress.data.player1Promises.push(data?.promise);
+      } else {
+        if (!dayProgress.data.player2Promises) dayProgress.data.player2Promises = [];
+        dayProgress.data.player2Promises.push(data?.promise);
+      }
+    } else if (action === 'capsule') {
+      if (isPlayer1) dayProgress.data.player1Capsule = data?.message;
+      else dayProgress.data.player2Capsule = data?.message;
+    } else if (action === 'garden') {
+      if (isPlayer1) {
+        if (!dayProgress.data.player1Garden) dayProgress.data.player1Garden = [];
+        dayProgress.data.player1Garden.push({ flower: data?.flower, message: data?.message });
+      } else {
+        if (!dayProgress.data.player2Garden) dayProgress.data.player2Garden = [];
+        dayProgress.data.player2Garden.push({ flower: data?.flower, message: data?.message });
+      }
+    } else if (action === 'quiz') {
+      if (isPlayer1) dayProgress.data.player1Quiz = data?.answers;
+      else dayProgress.data.player2Quiz = data?.answers;
+    } else if (action === 'memory') {
+      if (isPlayer1) dayProgress.data.player1Memory = data?.memory;
+      else dayProgress.data.player2Memory = data?.memory;
+    } else if (action === 'constellation') {
+      if (isPlayer1) dayProgress.data.player1Constellation = data?.message;
+      else dayProgress.data.player2Constellation = data?.message;
+    } else if (action === 'fortune') {
+      if (isPlayer1) dayProgress.data.player1Fortune = data?.message;
+      else dayProgress.data.player2Fortune = data?.message;
+    }
+    // Mark as completed when either player submits
+    dayProgress.data.completed = true;
+  }
+
+  // Save to database
+  await saveRoom(room);
+  rooms.set(roomId.toUpperCase(), room);
+
+  // Emit socket event for real-time update
+  io.to(roomId.toUpperCase()).emit('partner-acted', { playerId, day, action });
+
+  res.json({ success: true });
+});
+
 // Generic day status
 app.get('/api/day/:day/status', async (req: Request, res: Response) => {
   const day = parseInt(req.params.day);

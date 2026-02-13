@@ -10,6 +10,7 @@ interface SoundOption {
 
 const SOUND_OPTIONS: SoundOption[] = [
   { id: 'piano', name: 'Romantic Piano', emoji: '🎹', url: '/sound/freesound_community-chonology-of-love-6094.mp3' },
+  { id: 'romantic', name: 'Romantic Keys', emoji: '🎵', url: '/sound/samuelfjohanns-romantic-keys-153559.mp3' },
   { id: 'rain', name: 'Gentle Rain', emoji: '🌧️', url: '/sound/vem_click-rain-sound-188158.mp3' },
   { id: 'birds', name: 'Forest Birds', emoji: '🐦', url: '/sound/freesound_community-birds-19624.mp3' },
   { id: 'music', name: 'Emotive Music', emoji: '🎵', url: '/sound/freesound_community-emotive-film-music-28052.mp3' },

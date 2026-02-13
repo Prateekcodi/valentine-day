@@ -508,11 +508,11 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const dayProgress = room.progress[1];
   const isPlayer1 = room.player1?.id === playerId;
   
-  // Check ALL activities for Day 8 (require ALL 9 activities to be complete)
+  // Check ALL activities for Day 8 (require ALL 10 activities to be complete)
   const checkAllSubmitted = (isP1: boolean) => {
     const data = dayProgress.data || {};
     const p = isP1 ? 'player1' : 'player2';
-    // Check if ALL 9 activities are completed
+    // Check if ALL 10 activities are completed
     const hasLetter = !!data[`${p}Letter`];
     const hasLantern = !!data[`${p}Lantern`];
     const hasPromises = !!(data[`${p}Promises`] && data[`${p}Promises`].length > 0);
@@ -522,8 +522,9 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
     const hasConstellation = !!data[`${p}Constellation`];
     const hasFortune = !!data[`${p}Fortune`];
     const hasMemory = !!data[`${p}Memory`];
+    const hasAchievements = !!(data[`${p}Achievements`] && data[`${p}Achievements`].length > 0);
     
-    return hasLetter && hasLantern && hasPromises && hasCapsule && hasGarden && hasQuiz && hasConstellation && hasFortune && hasMemory;
+    return hasLetter && hasLantern && hasPromises && hasCapsule && hasGarden && hasQuiz && hasConstellation && hasFortune && hasMemory && hasAchievements;
   };
   
   const hasThisPlayerSubmitted = isPlayer1 ? checkAllSubmitted(true) : checkAllSubmitted(false);
@@ -671,6 +672,25 @@ app.post('/api/day/:day/activity', async (req: Request, res: Response) => {
     } else if (action === 'fortune') {
       if (isPlayer1) dayProgress.data.player1Fortune = data?.message;
       else dayProgress.data.player2Fortune = data?.message;
+    } else if (action === 'achievements') {
+      // Store achievements/unlocked badges
+      if (isPlayer1) {
+        if (!dayProgress.data.player1Achievements) dayProgress.data.player1Achievements = [];
+        const badges = data?.badges || [];
+        badges.forEach((b: string) => {
+          if (!dayProgress.data.player1Achievements.includes(b)) {
+            dayProgress.data.player1Achievements.push(b);
+          }
+        });
+      } else {
+        if (!dayProgress.data.player2Achievements) dayProgress.data.player2Achievements = [];
+        const badges = data?.badges || [];
+        badges.forEach((b: string) => {
+          if (!dayProgress.data.player2Achievements.includes(b)) {
+            dayProgress.data.player2Achievements.push(b);
+          }
+        });
+      }
     }
     // Mark as completed when either player submits
     dayProgress.data.completed = true;

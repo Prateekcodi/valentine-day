@@ -206,14 +206,23 @@ function Fireworks({ active }: { active: boolean }) {
 function CinematicOpening({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState(0);
   const [typed, setTyped] = useState("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const name1 = "My Love";
   const msg = `Happy Valentine's Day, ${name1}...`;
 
   useEffect(() => {
+    // Play cinematic sound when opening starts
+    audioRef.current = new Audio(CINEMATIC_SOUND);
+    audioRef.current.volume = 0.3;
+    audioRef.current.play().catch(() => {});
+    
     const t1 = setTimeout(() => setPhase(1), 800);
     const t2 = setTimeout(() => setPhase(2), 2200);
     const t3 = setTimeout(() => setPhase(3), 3600);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    return () => { 
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); 
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    };
   }, []);
 
   useEffect(() => {
@@ -1928,7 +1937,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
       <PetalRain active={petalRain} />
       <Fireworks active={fireworks} />
       {toastBadge && <AchievementToast badge={toastBadge} onDone={() => setToastBadge(null)} />}
-      {romanticSound && <SoundPlayer autoPlay={true} />}
+      {romanticSound && <SoundPlayer autoPlay={true} defaultSoundId="paino" />}
       {easterEgg && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 9997, display: "flex", alignItems: "center", justifyContent: "center",

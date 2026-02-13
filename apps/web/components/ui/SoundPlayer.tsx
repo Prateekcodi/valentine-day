@@ -18,13 +18,16 @@ const SOUND_OPTIONS: SoundOption[] = [
 
 interface SoundPlayerProps {
   autoPlay?: boolean;
+  defaultSoundId?: string;
 }
 
-export function SoundPlayer({ autoPlay = false }: SoundPlayerProps) {
+export function SoundPlayer({ autoPlay = false, defaultSoundId }: SoundPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.4);
-  const [currentSound, setCurrentSound] = useState(SOUND_OPTIONS[0]);
+  const [currentSound, setCurrentSound] = useState(defaultSoundId 
+    ? SOUND_OPTIONS.find(s => s.id === defaultSoundId) || SOUND_OPTIONS[0] 
+    : SOUND_OPTIONS[0]);
   const [showSoundPicker, setShowSoundPicker] = useState(false);
   const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);

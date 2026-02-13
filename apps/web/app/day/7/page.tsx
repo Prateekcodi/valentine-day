@@ -152,9 +152,9 @@ export default function Day7Page() {
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={7} className="p-8 text-center">
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">Day 7 - February 13</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Hug Day</h1>
-            <p className="text-gray-700">How do you offer support to each other?</p>
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">Day 7 - February 13</div>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Hug Day</h1>
+            <p className="text-white/80">How do you offer support to each other?</p>
           </div>
           <div className="mb-8">
             <div className="w-24 h-24 mx-auto relative">
@@ -167,13 +167,13 @@ export default function Day7Page() {
             <div className="space-y-6 text-left">
               {/* What support I need */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">When I need support, I prefer...</label>
+                <label className="block text-sm font-medium text-white/80 mb-2">When I need support, I prefer...</label>
                 <textarea
                   value={need}
                   onChange={function(e) { setNeed(e.target.value); }}
                   placeholder="When I'm sad, I need you to..."
                   maxLength={200}
-                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
                   rows={2}
                 />
                 <div className="text-xs text-gray-500 text-right mt-1">{need.length}/200</div>
@@ -181,13 +181,13 @@ export default function Day7Page() {
               
               {/* How I support partner */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">When my partner needs support, I...</label>
+                <label className="block text-sm font-medium text-white/80 mb-2">When my partner needs support, I...</label>
                 <textarea
                   value={response}
                   onChange={function(e) { setResponse(e.target.value); }}
                   placeholder="When they're sad, I support them by..."
                   maxLength={200}
-                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
                   rows={2}
                 />
                 <div className="text-xs text-gray-500 text-right mt-1">{response.length}/200</div>
@@ -201,7 +201,7 @@ export default function Day7Page() {
             </div>
           ) : !reflection ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
+              <div className="flex items-center justify-center gap-2 text-white/80">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
                 <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
               </div>
@@ -219,7 +219,7 @@ export default function Day7Page() {
               </div>
               
               <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                <div className="text-sm uppercase tracking-widest text-white/60 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
               </GlassCard>
               <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>

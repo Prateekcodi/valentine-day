@@ -160,9 +160,9 @@ export default function Day4Page() {
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={DAY_NUMBER} className="p-8 text-center">
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">Day {DAY_NUMBER} - February {6 + DAY_NUMBER}</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{DAY_TITLE}</h1>
-            <p className="text-gray-700">{DAY_DESCRIPTION}</p>
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">Day {DAY_NUMBER} - February {6 + DAY_NUMBER}</div>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{DAY_TITLE}</h1>
+            <p className="text-white/80">{DAY_DESCRIPTION}</p>
           </div>
           <div className="mb-8">
             <div className="w-24 h-24 mx-auto relative">
@@ -174,7 +174,7 @@ export default function Day4Page() {
           {!submitted ? (
             <div className="space-y-6 text-left">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">How do you offer comfort?</label>
+                <label className="block text-sm font-medium text-white/80 mb-2">How do you offer comfort?</label>
                 <div className="grid grid-cols-2 gap-2">
                   {comfortOptions.map(opt => (
                     <button
@@ -190,7 +190,7 @@ export default function Day4Page() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">How do you prefer to receive comfort?</label>
+                <label className="block text-sm font-medium text-white/80 mb-2">How do you prefer to receive comfort?</label>
                 <div className="grid grid-cols-2 gap-2">
                   {comfortOptions.map(opt => (
                     <button
@@ -206,13 +206,13 @@ export default function Day4Page() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tell them more about your comfort style</label>
+                <label className="block text-sm font-medium text-white/80 mb-2">Tell them more about your comfort style</label>
                 <textarea
                   value={message}
                   onChange={function(e) { setMessage(e.target.value); }}
                   placeholder="What comfort means to you..."
                   maxLength={200}
-                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
                   rows={2}
                 />
                 <div className="text-xs text-gray-500 text-right mt-1">{message.length}/200</div>
@@ -226,7 +226,7 @@ export default function Day4Page() {
             </div>
           ) : !reflection ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
+              <div className="flex items-center justify-center gap-2 text-white/80">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
                 <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
               </div>
@@ -244,7 +244,7 @@ export default function Day4Page() {
               </div>
               
               <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                <div className="text-sm uppercase tracking-widest text-white/60 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
               </GlassCard>
               <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>

@@ -173,13 +173,13 @@ export default function ProposeDayPage() {
           className="p-8 text-center"
         >
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">
               Day {dayNumber} - February 8
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
               {dayInfo.name}
             </h1>
-            <p className="text-gray-700">One honest sentence</p>
+            <p className="text-white/80">One honest sentence</p>
           </div>
           
           <div className="mb-8 relative">
@@ -191,14 +191,14 @@ export default function ProposeDayPage() {
           
           {!submitted ? (
             <div className="space-y-4">
-              <p className="text-gray-700 mb-4">Write one honest sentence about how you feel (15-150 characters)</p>
+              <p className="text-white/80 mb-4">Write one honest sentence about how you feel (15-150 characters)</p>
               
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Write your message here..."
                 maxLength={150}
-                className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 h-32 resize-none"
+                className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/30 h-32 resize-none"
               />
               
               <div className="text-sm text-gray-500">{message.length}/150 characters</div>
@@ -215,7 +215,7 @@ export default function ProposeDayPage() {
             </div>
           ) : !reflection ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
+              <div className="flex items-center justify-center gap-2 text-white/80">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: theme.primary }} />
                 <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
               </div>
@@ -233,7 +233,7 @@ export default function ProposeDayPage() {
               </div>
               
               <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                <div className="text-sm uppercase tracking-widest text-white/60 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
               </GlassCard>
               

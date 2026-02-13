@@ -156,9 +156,9 @@ export default function ChocolateDayPage() {
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={dayNumber} className="p-8 text-center">
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">Day {dayNumber} - February 9</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{dayInfo.name}</h1>
-            <p className="text-gray-700">Choose a chocolate for your partner</p>
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">Day {dayNumber} - February 9</div>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{dayInfo.name}</h1>
+            <p className="text-white/80">Choose a chocolate for your partner</p>
           </div>
           
           <div className="mb-8">
@@ -170,7 +170,7 @@ export default function ChocolateDayPage() {
           
           {!submitted ? (
             <div className="space-y-4">
-              <p className="text-gray-700 mb-4">What kind of chocolate represents your love?</p>
+              <p className="text-white/80 mb-4">What kind of chocolate represents your love?</p>
               <div className="grid grid-cols-2 gap-3">
                 {Object.entries(chocolateTypes).map(function([key, type]) {
                   return (
@@ -180,8 +180,8 @@ export default function ChocolateDayPage() {
                       className={'p-4 rounded-xl border-2 transition-all ' + (choice === key ? 'border-white bg-white/30' : 'border-white/20 bg-white/10 hover:bg-white/20')}
                     >
                       <div className="text-3xl mb-1">{type.emoji}</div>
-                      <div className="font-medium text-gray-900">{type.label}</div>
-                      <div className="text-xs text-gray-600">{type.desc}</div>
+                      <div className="font-medium text-white">{type.label}</div>
+                      <div className="text-xs text-white/60">{type.desc}</div>
                     </button>
                   );
                 })}
@@ -189,7 +189,7 @@ export default function ChocolateDayPage() {
               
               {/* Message Box - Why you chose this chocolate */}
               <div className="mt-6 text-left">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white/80 mb-2">
                   Why did you choose this? (optional)
                 </label>
                 <textarea
@@ -197,7 +197,7 @@ export default function ChocolateDayPage() {
                   onChange={function(e) { setMessage(e.target.value); }}
                   placeholder="Tell them why this chocolate represents your love..."
                   maxLength={150}
-                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                  className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
                   rows={3}
                 />
                 <div className="text-xs text-gray-500 mt-1 text-right">{message.length}/150</div>
@@ -220,14 +220,14 @@ export default function ChocolateDayPage() {
               </div>
               
               {!reflection ? (
-                <div className="flex items-center justify-center gap-2 text-gray-700">
+                <div className="flex items-center justify-center gap-2 text-white/80">
                   <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: theme.primary }} />
                   <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
                 </div>
               ) : (
                 <>
                   <GlassCard variant="subtle" className="p-6">
-                    <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                    <div className="text-sm uppercase tracking-widest text-white/60 mb-3">AI Reflection</div>
                     <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
                   </GlassCard>
                   <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>

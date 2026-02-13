@@ -120,7 +120,7 @@ export default function RoseDayPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-rose-900 to-pink-900" />
       
       {/* Sound player */}
       <SoundPlayer autoPlay={true} />
@@ -134,13 +134,13 @@ export default function RoseDayPage() {
         >
           {/* Day header */}
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">
               Day 1 • February 7
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
               Rose Day
             </h1>
-            <p className="text-gray-700">
+            <p className="text-white/80">
               A quiet beginning
             </p>
           </div>

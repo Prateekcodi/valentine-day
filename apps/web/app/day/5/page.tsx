@@ -140,9 +140,9 @@ export default function Day5Page() {
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="medium" colored dayTheme={DAY_NUMBER} className="p-8 text-center">
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">Day {DAY_NUMBER} - February {6 + DAY_NUMBER}</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{DAY_TITLE}</h1>
-            <p className="text-gray-700">{DAY_DESCRIPTION}</p>
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">Day {DAY_NUMBER} - February {6 + DAY_NUMBER}</div>
+            <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{DAY_TITLE}</h1>
+            <p className="text-white/80">{DAY_DESCRIPTION}</p>
           </div>
           <div className="mb-8">
             <div className="w-24 h-24 mx-auto relative">
@@ -152,14 +152,14 @@ export default function Day5Page() {
           </div>
           {!submitted ? (
             <div className="space-y-4 text-left">
-              <p className="text-gray-700 mb-4">Write a realistic promise to your partner. Be specific and heartfelt.</p>
+              <p className="text-white/80 mb-4">Write a realistic promise to your partner. Be specific and heartfelt.</p>
               
               <textarea
                 value={message}
                 onChange={function(e) { setMessage(e.target.value); }}
                 placeholder="I promise to... (be specific and realistic)"
                 maxLength={300}
-                className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
+                className="w-full px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
                 rows={4}
               />
               <div className="text-xs text-gray-500 text-right">{message.length}/300</div>
@@ -172,7 +172,7 @@ export default function Day5Page() {
             </div>
           ) : !reflection ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
+              <div className="flex items-center justify-center gap-2 text-white/80">
                 <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
                 <span>{partnerSubmitted ? 'Creating reflection...' : 'Waiting for partner...'}</span>
               </div>
@@ -190,7 +190,7 @@ export default function Day5Page() {
               </div>
               
               <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">AI Reflection</div>
+                <div className="text-sm uppercase tracking-widest text-white/60 mb-3">AI Reflection</div>
                 <p className="text-gray-800 leading-relaxed italic">{reflection}</p>
               </GlassCard>
               <GlassButton variant="primary" size="md" onClick={handleContinue}>Continue Journey</GlassButton>

@@ -82,9 +82,9 @@ export default function Day8Page() {
       <div className="relative z-10 container max-w-2xl mx-auto px-4 py-16 min-h-screen flex items-center justify-center">
         <GlassCard variant="strong" className="p-8 text-center">
           <div className="mb-8">
-            <div className="text-sm uppercase tracking-widest text-gray-600 mb-2">February 14</div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Valentine's Day</h1>
-            <p className="text-gray-700 text-lg">The final day of your journey</p>
+            <div className="text-sm uppercase tracking-widest text-white/60 mb-2">February 14</div>
+            <h1 className="text-5xl font-bold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Valentine's Day</h1>
+            <p className="text-white/80 text-lg">The final day of your journey</p>
           </div>
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
@@ -94,12 +94,12 @@ export default function Day8Page() {
           </div>
           {!submitted ? (
             <div className="space-y-4">
-              <p className="text-gray-700">Click below to complete your journey together</p>
+              <p className="text-white/80">Click below to complete your journey together</p>
               <GlassButton variant="primary" size="lg" onClick={handleSubmit} loading={loading}>Complete Our Journey</GlassButton>
             </div>
           ) : !reflection ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-gray-700">
+              <div className="flex items-center justify-center gap-2 text-white/80">
                 <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
                 <span>{partnerSubmitted ? 'Creating your final reflection...' : 'Waiting for partner...'}</span>
               </div>
@@ -107,7 +107,7 @@ export default function Day8Page() {
           ) : (
             <div className="space-y-6">
               <GlassCard variant="subtle" className="p-6">
-                <div className="text-sm uppercase tracking-widest text-gray-600 mb-3">Your Journey Together</div>
+                <div className="text-sm uppercase tracking-widest text-white/60 mb-3">Your Journey Together</div>
                 <p className="text-gray-800 leading-relaxed italic text-lg">{reflection}</p>
               </GlassCard>
               <GlassCard variant="medium" colored dayTheme={8} className="p-6">

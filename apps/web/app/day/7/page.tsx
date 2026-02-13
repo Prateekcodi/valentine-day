@@ -8,6 +8,11 @@ import { SoundPlayer, MessageSlider } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// For day status, we need to use the Railway backend API which has all endpoints
+const getStatusUrl = (dayNum: number, room: string, pid: string) => {
+  return `${API_URL}/api/room/${room}?playerId=${pid}`;
+};
+
 interface DayStatusType {
   submitted?: boolean;
   partnerSubmitted?: boolean;
@@ -62,38 +67,37 @@ export default function Day7Page() {
   const checkExisting = async function() {
     try {
       const pid = localStorage.getItem('playerId');
-      const res = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (pid || ''));
-      const data = await res.json();
+      // Use Railway backend API which has the room endpoint
+      const res = await fetch(getStatusUrl(dayNumber, roomId, pid || ''));
+      const roomData = await res.json();
       
-      // Update dayStatus with all data
-      setDayStatus(data);
+      // Get day progress from room data
+      const dayProgress = roomData.progress?.[dayNumber - 1];
+      const data = dayProgress?.data || {};
       
-      if (data.submitted) {
+      // Check if player has submitted
+      const isPlayer1 = roomData.player1?.id === pid;
+      const playerSubmitted = isPlayer1 ? data.p1Need : data.p2Need;
+      const partnerSubmitted = isPlayer1 ? data.p2Need : data.p1Need;
+      
+      // Update states
+      setDayStatus({
+        submitted: !!playerSubmitted,
+        partnerSubmitted: !!partnerSubmitted,
+        reflection: dayProgress?.aiReflection || null,
+        playerNeed: isPlayer1 ? data.p1Need : data.p2Need,
+        playerResponse: isPlayer1 ? data.p1Response : data.p2Response,
+        partnerNeed: isPlayer1 ? data.p2Need : data.p1Need,
+        partnerResponse: isPlayer1 ? data.p2Response : data.p1Response,
+      });
+      
+      if (playerSubmitted) {
         setSubmitted(true);
-        
-        if (data.partnerSubmitted) {
-          setPartnerSubmitted(true);
-          if (data.reflection) setReflection(data.reflection);
-        }
-        
-        // If we have player data, update the slider
-        if (data.playerNeed) {
-          setDayStatus((prev: DayStatusType | null) => ({
-            ...(prev || {}),
-            playerNeed: data.playerNeed,
-            playerResponse: data.playerResponse,
-            partnerNeed: data.partnerNeed || prev?.partnerNeed || '',
-            partnerResponse: data.partnerResponse || prev?.partnerResponse || ''
-          }));
-        }
-        
-        // If partner submitted, update their data
-        if (data.partnerNeed) {
-          setDayStatus((prev: DayStatusType | null) => ({
-            ...(prev || {}),
-            partnerNeed: data.partnerNeed,
-            partnerResponse: data.partnerResponse
-          }));
+      }
+      if (partnerSubmitted) {
+        setPartnerSubmitted(true);
+        if (dayProgress?.aiReflection) {
+          setReflection(dayProgress.aiReflection);
         }
       }
     } catch (e) { console.error('Check failed:', e); }
@@ -106,6 +110,7 @@ export default function Day7Page() {
     setLoading(true);
     try {
       const pid = localStorage.getItem('playerId');
+      // Use Railway backend API
       const res = await fetch(API_URL + '/api/day/' + dayNumber + '/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

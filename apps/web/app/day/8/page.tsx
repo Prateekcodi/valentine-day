@@ -1267,6 +1267,15 @@ export default function Day8Page() {
   const [easterEgg, setEasterEgg] = useState(false);
   const logoRef = useRef<HTMLDivElement>(null);
   
+  // Secret trigger refs
+  const [secretHint, setSecretHint] = useState("");
+  const titleTapRef = useRef(0);
+  const titleTapTimer = useRef<NodeJS.Timeout | null>(null);
+  const heartLongPress = useRef<NodeJS.Timeout | null>(null);
+  const shakeRef = useRef({lastX:0, lastY:0, lastZ:0, count:0});
+  const konamiProgress = useRef(0);
+  const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+  
   // Partner real-time state
   const [partnerData, setPartnerData] = useState<{
     letter?: string;
@@ -1347,87 +1356,73 @@ export default function Day8Page() {
   }, []);
 
   // Secret easter egg triggers
+  // Tap logo 7 times handler
+  const handleLogoClick = () => {
+    if (titleTapTimer.current) clearTimeout(titleTapTimer.current);
+    titleTapRef.current++;
+    titleTapTimer.current = setTimeout(() => { titleTapRef.current = 0; }, 1000);
+    if (titleTapRef.current >= 7) {
+      titleTapRef.current = 0;
+      setSecretHint("You tapped 7 times! 🎉 Try the others:");
+      setEasterEgg(true);
+      unlock("secret");
+    }
+  };
+
+  // Long press (3 seconds) handler
+  const handleLogoMouseDown = () => {
+    heartLongPress.current = setTimeout(() => {
+      setSecretHint("Long press detected! 🎉 Try the others:");
+      setEasterEgg(true);
+      unlock("secret");
+    }, 3000);
+  };
+  const handleLogoMouseUp = () => {
+    if (heartLongPress.current) clearTimeout(heartLongPress.current);
+  };
+
+  // Keyboard - Konami code handler
   useEffect(() => {
-    let tapCount = 0;
-    let tapTimer: NodeJS.Timeout;
-    let lastShake = 0;
-    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
-    let konamiIndex = 0;
-
-    // Tap logo 7 times
-    const handleLogoClick = () => {
-      tapCount++;
-      clearTimeout(tapTimer);
-      tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
-      if (tapCount >= 7) {
-        tapCount = 0;
-        setEasterEgg(true);
-        unlock("secret");
-      }
-    };
-
-    // Long press (3 seconds)
-    let pressTimer: NodeJS.Timeout;
-    const handleLogoMouseDown = () => {
-      pressTimer = setTimeout(() => {
-        setEasterEgg(true);
-        unlock("secret");
-      }, 3000);
-    };
-    const handleLogoMouseUp = () => {
-      clearTimeout(pressTimer);
-    };
-
-    // Keyboard - Konami code
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-          konamiIndex = 0;
+      if (e.code === KONAMI[konamiProgress.current]) {
+        konamiProgress.current++;
+        if (konamiProgress.current === KONAMI.length) {
+          konamiProgress.current = 0;
+          setSecretHint("Konami code activated! 🎉 Try the others:");
           setEasterEgg(true);
           unlock("secret");
         }
       } else {
-        konamiIndex = 0;
+        konamiProgress.current = 0;
       }
     };
 
-    // Shake detection (mobile)
+    // Shake detection handler
     const handleDeviceMotion = (e: DeviceMotionEvent) => {
-      const now = Date.now();
-      if (now - lastShake < 1000) return;
       const acc = e.acceleration;
-      if (acc && (Math.abs(acc.x || 0) > 25 || Math.abs(acc.y || 0) > 25 || Math.abs(acc.z || 0) > 25)) {
-        lastShake = now;
+      if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
+      const now = Date.now();
+      const diff = now - shakeRef.current.count;
+      if (diff < 1000) return;
+      if (Math.abs(acc.x - shakeRef.current.lastX) > 20 || 
+          Math.abs(acc.y - shakeRef.current.lastY) > 20 || 
+          Math.abs(acc.z - shakeRef.current.lastZ) > 20) {
+        shakeRef.current.lastX = acc.x;
+        shakeRef.current.lastY = acc.y;
+        shakeRef.current.lastZ = acc.z;
+        shakeRef.current.count = now;
+        setSecretHint("Shake detected! 🎉 Try the others:");
         setEasterEgg(true);
         unlock("secret");
       }
     };
 
-    // Add keyboard listener
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('devicemotion', handleDeviceMotion);
-
-    // Attach to logo element using ref
-    const logoEl = logoRef.current;
-    if (logoEl) {
-      logoEl.addEventListener('click', handleLogoClick);
-      logoEl.addEventListener('mousedown', handleLogoMouseDown);
-      logoEl.addEventListener('mouseup', handleLogoMouseUp);
-      logoEl.addEventListener('mouseleave', handleLogoMouseUp);
-    }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('devicemotion', handleDeviceMotion);
-      clearTimeout(tapTimer);
-      clearTimeout(pressTimer);
-      if (logoEl) {
-        logoEl.removeEventListener('click', handleLogoClick);
-        logoEl.removeEventListener('mousedown', handleLogoMouseDown);
-        logoEl.removeEventListener('mouseup', handleLogoMouseUp);
-        logoEl.removeEventListener('mouseleave', handleLogoMouseUp);
-      }
     };
   }, []);
 
@@ -1844,20 +1839,35 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
         }} onClick={() => setEasterEgg(false)}>
           <div style={{ fontSize: 80, marginBottom: 20, animation: "floatBob 2s ease-in-out infinite" }}>🔮</div>
           <h2 style={{ color: PALETTE.gold, fontFamily: "Georgia,serif", fontSize: 28, marginBottom: 12 }}>
-            Secret Discovered!
+            {secretHint || "Secret Discovered!"}
           </h2>
           <p style={{ color: PALETTE.champagne, fontSize: 16, fontStyle: "italic", marginBottom: 20, textAlign: "center", maxWidth: 300, lineHeight: 1.8 }}>
             "The greatest love stories are the ones that were never supposed to happen — yet did anyway."
           </p>
-          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Click anywhere to close</p>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, textAlign: "center", lineHeight: 2 }}>
+            <div>👆 Tap logo 7 times</div>
+            <div>✋ Long press logo 3 seconds</div>
+            <div>📱 Shake your phone</div>
+            <div>⌨️ Konami: ↑↑↓↓←→←→BA</div>
+          </div>
+          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginTop: 20 }}>Click anywhere to close</p>
         </div>
       )}
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px 80px" }}>
         {/* Header */}
         <div style={{ textAlign: "center", padding: "28px 0 20px" }}>
-          <div ref={logoRef} id="valentine-logo" style={{ fontSize: 52, marginBottom: 10, animation: "floatBob 3s ease-in-out infinite",
-            filter: `drop-shadow(0 0 20px ${PALETTE.rose})`, cursor: 'pointer' }}>💕</div>
+          <div 
+            ref={logoRef} 
+            id="valentine-logo" 
+            style={{ fontSize: 52, marginBottom: 10, animation: "floatBob 3s ease-in-out infinite",
+              filter: `drop-shadow(0 0 20px ${PALETTE.rose})`, cursor: 'pointer' }}
+            onClick={handleLogoClick}
+            onMouseDown={handleLogoMouseDown}
+            onMouseUp={handleLogoMouseUp}
+            onTouchStart={handleLogoClick}
+            onTouchEnd={handleLogoMouseUp}
+          >💕</div>
           <h1 style={{
             fontFamily: "Georgia,serif", fontWeight: 900, fontSize: 28, letterSpacing: 3,
             background: `linear-gradient(135deg,${PALETTE.gold},${PALETTE.blush},${PALETTE.gold})`,

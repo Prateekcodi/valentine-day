@@ -48,6 +48,15 @@ class SocketClient {
     return this.socket?.connected || false;
   }
 
+  // Emit event to server
+  emit(event: string, data: any): void {
+    if (this.socket?.connected) {
+      this.socket.emit(event, data);
+    } else {
+      console.warn('Socket not connected, cannot emit event:', event);
+    }
+  }
+
   // Room operations
   createRoom(playerName: string): Promise<{ roomId: string; playerId: string }> {
     return new Promise((resolve, reject) => {

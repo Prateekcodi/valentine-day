@@ -61,6 +61,38 @@ export function setupSocketHandlers(io: Server) {
         } else {
           dayProgress.data.player2Message = data.message;
         }
+      } else if (day === 8) {
+        // Day 8: Store Valentine activities
+        const isPlayer1 = room.player1?.id === playerId;
+        if (action === 'letter') {
+          if (isPlayer1) {
+            dayProgress.data.player1Letter = data.message;
+          } else {
+            dayProgress.data.player2Letter = data.message;
+          }
+        } else if (action === 'lantern') {
+          if (isPlayer1) {
+            dayProgress.data.player1Lantern = data.wish;
+          } else {
+            dayProgress.data.player2Lantern = data.wish;
+          }
+        } else if (action === 'promise') {
+          if (isPlayer1) {
+            if (!dayProgress.data.player1Promises) dayProgress.data.player1Promises = [];
+            dayProgress.data.player1Promises.push(data.promise);
+          } else {
+            if (!dayProgress.data.player2Promises) dayProgress.data.player2Promises = [];
+            dayProgress.data.player2Promises.push(data.promise);
+          }
+        } else if (action === 'capsule') {
+          if (isPlayer1) {
+            dayProgress.data.player1Capsule = data.message;
+          } else {
+            dayProgress.data.player2Capsule = data.message;
+          }
+        }
+        // Mark as completed when either player submits
+        dayProgress.data.completed = true;
       } else {
         // Generic action storage
         dayProgress.data[playerId] = { action, ...data };
@@ -165,8 +197,8 @@ function checkDayCompletion(day: number, data: any): boolean {
       return data.player1Affection && data.player2Affection;
     case 7: // Hug Day
       return data.player1Support && data.player2Support;
-    case 8: // Valentine's Day
-      return true; // Final day
+    case 8: // Valentine's Day - custom completion based on activities
+      return data.completed || false;
     default:
       return false;
   }

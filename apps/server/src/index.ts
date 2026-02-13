@@ -567,6 +567,40 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
   let playerMessage: string | null = null;
   let partnerMessage: string | null = null;
 
+  // For Day 8 (Valentine's Day), return all responses
+  if (day === 8) {
+    hasThisPlayerSubmitted = true; // Day 8 doesn't require both to submit
+    hasPartnerSubmitted = dayProgress.completed;
+    
+    const responses = {
+      player1: {
+        name: room.player1?.name || 'Player 1',
+        letter: dayProgress.data?.player1Letter || null,
+        lantern: dayProgress.data?.player1Lantern || null,
+        promises: dayProgress.data?.player1Promises || [],
+        capsule: dayProgress.data?.player1Capsule || null,
+      },
+      player2: {
+        name: room.player2?.name || 'Player 2',
+        letter: dayProgress.data?.player2Letter || null,
+        lantern: dayProgress.data?.player2Lantern || null,
+        promises: dayProgress.data?.player2Promises || [],
+        capsule: dayProgress.data?.player2Capsule || null,
+      }
+    };
+    
+    res.json({
+      submitted: hasThisPlayerSubmitted || false,
+      partnerSubmitted: hasPartnerSubmitted || false,
+      reflection: dayProgress.aiReflection || null,
+      completed: dayProgress.completed,
+      playerMessage: null,
+      partnerMessage: null,
+      responses
+    });
+    return;
+  }
+
   if (day === 2) {
     hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Message : !!dayProgress.data?.player2Message;
     hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Message : !!dayProgress.data?.player1Message;

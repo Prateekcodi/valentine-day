@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { socketClient } from '@/lib/socket';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -361,7 +362,7 @@ const LETTER_TEMPLATES = [
   (n1: string, n2: string) => `Darling ${n2 || "heart"},\n\nSome people search their whole lives for what we have — this easy, beautiful, ridiculous love. I am grateful every single day that the universe was kind enough to write us into the same story.\n\nThank you for being you. For choosing me.\n\nYours in every season,\n${n1 || "Your Love"} 🌹`,
 ];
 
-function LoveLetter({ onUnlock }: { onUnlock: (id: string) => void }) {
+function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [n1, setN1] = useState("");
   const n2 = useRef("");
   const [letter, setLetter] = useState("");
@@ -384,6 +385,17 @@ function LoveLetter({ onUnlock }: { onUnlock: (id: string) => void }) {
         clearInterval(t);
         setGenerating(false);
         if (!done) { setDone(true); onUnlock("letter"); }
+        // Emit socket event
+        if (roomId) {
+          const pid = localStorage.getItem('playerId');
+          socketClient.emit('day-action', { 
+            roomId, 
+            playerId: pid, 
+            day: 8, 
+            action: 'letter', 
+            data: { message: full } 
+          });
+        }
       }
     }, 18);
   };
@@ -517,7 +529,7 @@ function MemoryScrapbook() {
 // ═══════════════════════════════════════════════════════════
 // 12. WISH LANTERNS
 // ═══════════════════════════════════════════════════════════
-function WishLanterns({ onUnlock }: { onUnlock: (id: string) => void }) {
+function WishLanterns({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [wish, setWish] = useState("");
   const [lanterns, setLanterns] = useState<Array<{ id: number; text: string; x: number; color: string }>>([]);
   const [released, setReleased] = useState(false);
@@ -530,6 +542,17 @@ function WishLanterns({ onUnlock }: { onUnlock: (id: string) => void }) {
     setWish("");
     setReleased(true);
     onUnlock("lantern");
+    // Emit socket event
+    if (roomId) {
+      const pid = localStorage.getItem('playerId');
+      socketClient.emit('day-action', { 
+        roomId, 
+        playerId: pid, 
+        day: 8, 
+        action: 'lantern', 
+        data: { wish: wish } 
+      });
+    }
     setTimeout(() => setLanterns(l => l.filter(x => x.id !== id)), 8000);
   };
 
@@ -923,7 +946,7 @@ function LoveLanguageQuiz({ onUnlock }: { onUnlock: (id: string) => void }) {
 // ═══════════════════════════════════════════════════════════
 // 17. PROMISE STARS
 // ═══════════════════════════════════════════════════════════
-function PromiseStars({ onUnlock }: { onUnlock: (id: string) => void }) {
+function PromiseStars({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [promise, setPromise] = useState("");
   const [stars, setStars] = useState<Array<{ id: number; text: string; x: number; y: number; size: number }>>([]);
   const [done, setDone] = useState(false);
@@ -938,6 +961,17 @@ function PromiseStars({ onUnlock }: { onUnlock: (id: string) => void }) {
     setStars(ns);
     setPromise("");
     if (!done) { setDone(true); onUnlock("promise"); }
+    // Emit socket event
+    if (roomId) {
+      const pid = localStorage.getItem('playerId');
+      socketClient.emit('day-action', { 
+        roomId, 
+        playerId: pid, 
+        day: 8, 
+        action: 'promise', 
+        data: { promise: promise } 
+      });
+    }
   };
 
   return (
@@ -986,7 +1020,7 @@ function PromiseStars({ onUnlock }: { onUnlock: (id: string) => void }) {
 // ═══════════════════════════════════════════════════════════
 // 18. TIME CAPSULE
 // ═══════════════════════════════════════════════════════════
-function TimeCapsule({ onUnlock }: { onUnlock: (id: string) => void }) {
+function TimeCapsule({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [msg, setMsg] = useState("");
   const [sealed, setSealed] = useState(false);
   const [done, setDone] = useState(false);
@@ -995,6 +1029,17 @@ function TimeCapsule({ onUnlock }: { onUnlock: (id: string) => void }) {
     if (!msg.trim()) return;
     setSealed(true);
     if (!done) { setDone(true); onUnlock("capsule"); }
+    // Emit socket event
+    if (roomId) {
+      const pid = localStorage.getItem('playerId');
+      socketClient.emit('day-action', { 
+        roomId, 
+        playerId: pid, 
+        day: 8, 
+        action: 'capsule', 
+        data: { message: msg } 
+      });
+    }
   };
 
   return (
@@ -1145,8 +1190,26 @@ export default function Day8Page() {
   const [petalRain, setPetalRain] = useState(false);
   const [fireworks, setFireworks] = useState(false);
   const [easterEgg, setEasterEgg] = useState(false);
+  
+  // Partner real-time state
+  const [partnerData, setPartnerData] = useState<{
+    letter?: string;
+    lantern?: string;
+    promises?: string[];
+    garden?: { flower: string; message: string }[];
+    quizAnswers?: number[];
+    capsule?: string;
+    memory?: string;
+  }>({});
+  const [myName, setMyName] = useState('');
+  const [partnerName, setPartnerName] = useState('');
+  const [isPartnerActive, setIsPartnerActive] = useState(false);
+  const [bothResponses, setBothResponses] = useState<{
+    player1: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string };
+    player2: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string };
+  } | null>(null);
 
-  // API check
+  // API check and socket setup
   useEffect(() => {
     setMounted(true);
     const pid = localStorage.getItem('playerId');
@@ -1154,9 +1217,57 @@ export default function Day8Page() {
       router.push('/?error=Please+join+a+room+first');
       return;
     }
+    
+    // Connect to socket
+    const socket = socketClient.connect();
+    
+    // Join room for real-time updates
+    if (roomId) {
+      socket.emit('join-room', { roomId, playerId: pid });
+      
+      // Listen for partner actions
+      socket.on('partner-acted', (data: { playerId: string; day: number; action: string; data: any }) => {
+        if (data.day === 8) {
+          setIsPartnerActive(true);
+          setTimeout(() => setIsPartnerActive(false), 3000);
+          
+          // Update partner data based on action
+          if (data.action === 'letter') {
+            setPartnerData(prev => ({ ...prev, letter: data.data.message }));
+          } else if (data.action === 'lantern') {
+            setPartnerData(prev => ({ ...prev, lantern: data.data.wish }));
+          } else if (data.action === 'promise') {
+            setPartnerData(prev => ({ ...prev, promises: [...(prev.promises || []), data.data.promise] }));
+          } else if (data.action === 'garden') {
+            setPartnerData(prev => ({ ...prev, garden: [...(prev.garden || []), { flower: data.data.flower, message: data.data.message }] }));
+          } else if (data.action === 'quiz') {
+            setPartnerData(prev => ({ ...prev, quizAnswers: data.data.answers }));
+          } else if (data.action === 'capsule') {
+            setPartnerData(prev => ({ ...prev, capsule: data.data.message }));
+          } else if (data.action === 'memory') {
+            setPartnerData(prev => ({ ...prev, memory: data.data.memory }));
+          }
+        }
+      });
+      
+      // Listen for day completion
+      socket.on('day-completed', (data: { day: number; reflection: string }) => {
+        if (data.day === 8) {
+          setReflection(data.reflection);
+          setPartnerSubmitted(true);
+        }
+      });
+      
+      // Get partner name from room
+      fetchRoomInfo();
+    }
+    
     checkExisting();
     const poll = setInterval(function () { if (!reflection) checkExisting(); else clearInterval(poll); }, 10000);
-    return function () { clearInterval(poll); };
+    return function () { 
+      clearInterval(poll); 
+      socketClient.removeAllListeners();
+    };
   }, []);
 
   const checkExisting = async function () {
@@ -1169,9 +1280,35 @@ export default function Day8Page() {
         if (data.partnerSubmitted) {
           setPartnerSubmitted(true);
           if (data.reflection) setReflection(data.reflection);
+          // Fetch both responses for summary
+          if (data.responses) {
+            setBothResponses(data.responses);
+          }
         }
       }
     } catch (e) { console.error('Check failed:', e); }
+  };
+  
+  const fetchRoomInfo = async function () {
+    try {
+      const res = await fetch(API_URL + '/api/room/' + roomId);
+      const data = await res.json();
+      const pid = localStorage.getItem('playerId');
+      const myNameFromStorage = localStorage.getItem('playerName') || 'You';
+      setMyName(myNameFromStorage);
+      if (data.player1?.id !== pid && data.player1?.name) {
+        setPartnerName(data.player1.name);
+      } else if (data.player2?.name) {
+        setPartnerName(data.player2.name);
+      }
+      // Store both players' names
+      if (data.player1 && data.player2) {
+        setBothResponses({
+          player1: { name: data.player1.name || 'Player 1' },
+          player2: { name: data.player2.name || 'Player 2' }
+        });
+      }
+    } catch (e) { console.error('Fetch room failed:', e); }
   };
 
   const handleSubmit = async function () {
@@ -1213,7 +1350,7 @@ export default function Day8Page() {
 
   useEffect(() => { if (opened) unlock("first"); }, [opened]);
 
-  const sectionProps = { onUnlock: unlock };
+  const sectionProps = { onUnlock: unlock, roomId };
 
   const renderSection = () => {
     switch (section) {
@@ -1233,8 +1370,8 @@ export default function Day8Page() {
 
   if (!mounted) return null;
 
-  // Show original form if already submitted
-  if (submitted && reflection) {
+  // Show both responses summary
+  if (submitted && reflection && bothResponses) {
     return (
       <div style={{
         minHeight: "100vh",
@@ -1268,6 +1405,8 @@ export default function Day8Page() {
               <h2 style={{ color: PALETTE.gold, fontFamily: "Georgia,serif", fontSize: 24, fontWeight: 900, marginBottom: 16 }}>
                 💝 Happy Valentine's Day!
               </h2>
+              
+              {/* AI Reflection */}
               <div style={{
                 background: "rgba(255,255,255,0.08)",
                 borderRadius: 20, padding: 24, marginBottom: 20,
@@ -1277,6 +1416,76 @@ export default function Day8Page() {
                   {reflection}
                 </p>
               </div>
+              
+              {/* Your Response */}
+              <div style={{
+                background: "rgba(224,71,107,0.1)",
+                borderRadius: 16, padding: 20, marginBottom: 16,
+                border: "1px solid rgba(224,71,107,0.3)",
+                textAlign: "left",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 24 }}>👤</span>
+                  <span style={{ color: PALETTE.blush, fontWeight: 700, fontSize: 16 }}>{myName || 'You'}</span>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Your love letter</span>
+                </div>
+                <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic" }}>
+                  {bothResponses?.player1?.letter || bothResponses?.player2?.letter || "You've shared your heart..."}
+                </p>
+                {bothResponses?.player1?.promises && bothResponses.player1.promises.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Promises:</span>
+                    <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
+                      {bothResponses.player1.promises?.slice(0, 3).map((p, i) => (
+                        <li key={i}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              
+              {/* Partner's Response */}
+              {partnerSubmitted && (
+                <div style={{
+                  background: "rgba(168,85,247,0.1)",
+                  borderRadius: 16, padding: 20, marginBottom: 20,
+                  border: "1px solid rgba(168,85,247,0.3)",
+                  textAlign: "left",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 24 }}>💕</span>
+                    <span style={{ color: "#c084fc", fontWeight: 700, fontSize: 16 }}>{partnerName || 'Partner'}</span>
+                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Their love letter</span>
+                  </div>
+                  <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic" }}>
+                    {bothResponses?.player2?.letter || bothResponses?.player1?.letter || "Waiting for their response..."}
+                  </p>
+                  {bothResponses?.player2?.promises && bothResponses.player2.promises.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Their promises:</span>
+                      <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
+                        {bothResponses.player2.promises?.slice(0, 3).map((p, i) => (
+                          <li key={i}>{p}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {!partnerSubmitted && (
+                <div style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: 16, padding: 20, marginBottom: 20,
+                  border: "1px dashed rgba(255,255,255,0.2)",
+                  textAlign: "center",
+                }}>
+                  <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
+                    ⏳ Waiting for {partnerName || 'your partner'} to complete their journey...
+                  </p>
+                </div>
+              )}
+              
               <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginBottom: 20 }}>
                 Thank you for sharing this journey together.
               </p>
@@ -1355,6 +1564,20 @@ export default function Day8Page() {
           }}>
             🏆 {unlocked.length}/{ALL_BADGES.length} Achievements
           </div>
+          {/* Partner indicator */}
+          {roomId && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: isPartnerActive ? "rgba(224,71,107,0.2)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${isPartnerActive ? PALETTE.rose : "rgba(255,255,255,0.1)"}`,
+              borderRadius: 50, padding: "6px 16px", marginTop: 10, marginLeft: 10, fontSize: 12,
+              color: isPartnerActive ? PALETTE.blush : "rgba(255,255,255,0.4)",
+              transition: "all 0.3s",
+            }}>
+              <span style={{ animation: isPartnerActive ? "pulse 1s infinite" : "none" }}>💕</span>
+              {partnerName ? partnerName : 'Partner'} {isPartnerActive ? 'is active now!' : 'is here'}
+            </div>
+          )}
         </div>
 
         {/* Submit section */}
@@ -1443,6 +1666,7 @@ const globalStyles = `
   @keyframes toastSlide { 0% { transform: translateX(120%); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
   @keyframes petalFall { 0% { top: -5%; transform: translateX(0) rotate(0deg); opacity: 1; } 100% { top: 105%; transform: translateX(var(--drift)) rotate(720deg); opacity: 0; } }
   @keyframes fireworkBurst { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
   @keyframes fireworkParticle { 0% { transform: rotate(var(--fa)) translateY(0); opacity: 1; } 100% { transform: rotate(var(--fa)) translateY(-80px); opacity: 0; } }
   @keyframes crackOpen { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 `;

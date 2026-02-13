@@ -514,11 +514,14 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const player1Message = dayProgress.data?.player1Message || null;
   const player2Message = dayProgress.data?.player2Message || null;
   
+  // Only show reflection and completed when BOTH have submitted
+  const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
+  
   res.json({
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
-    reflection: dayProgress.aiReflection || null,
-    completed: dayProgress.completed,
+    reflection: bothSubmitted ? dayProgress.aiReflection : null,
+    completed: bothSubmitted ? dayProgress.completed : false,
     playerMessage: isPlayer1 ? player1Message : player2Message,
     partnerMessage: isPlayer1 ? player2Message : player1Message
   });
@@ -824,45 +827,51 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     const p1Fortune = dayProgress.data?.player1Fortune || null;
     const p2Fortune = dayProgress.data?.player2Fortune || null;
     
+    // Only show full responses when BOTH have submitted
+    const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
+    
     res.json({
       submitted: hasThisPlayerSubmitted || false,
       partnerSubmitted: hasPartnerSubmitted || false,
-      reflection: dayProgress.aiReflection || null,
-      completed: dayProgress.completed,
-      // Full responses for summary
-      responses: {
+      reflection: bothSubmitted ? dayProgress.aiReflection : null,
+      completed: bothSubmitted ? dayProgress.completed : false,
+      // Full responses only when both submitted
+      responses: bothSubmitted ? {
         player1: {
           name: room.player1?.name || 'Player 1',
-          letter: isPlayer1 ? p1Letter : p2Letter,
-          lantern: isPlayer1 ? p1Lantern : p2Lantern,
-          promises: isPlayer1 ? p1Promises : p2Promises,
-          capsule: isPlayer1 ? p1Capsule : p2Capsule,
-          garden: isPlayer1 ? p1Garden : p2Garden,
-          quiz: isPlayer1 ? p1Quiz : p2Quiz,
-          constellation: isPlayer1 ? p1Constellation : p2Constellation,
-          fortune: isPlayer1 ? p1Fortune : p2Fortune,
+          letter: p1Letter,
+          lantern: p1Lantern,
+          promises: p1Promises,
+          capsule: p1Capsule,
+          garden: p1Garden,
+          quiz: p1Quiz,
+          constellation: p1Constellation,
+          fortune: p1Fortune,
         },
         player2: {
           name: room.player2?.name || 'Player 2',
-          letter: isPlayer1 ? p2Letter : p1Letter,
-          lantern: isPlayer1 ? p2Lantern : p1Lantern,
-          promises: isPlayer1 ? p2Promises : p1Promises,
-          capsule: isPlayer1 ? p2Capsule : p1Capsule,
-          garden: isPlayer1 ? p2Garden : p1Garden,
-          quiz: isPlayer1 ? p2Quiz : p1Quiz,
-          constellation: isPlayer1 ? p2Constellation : p1Constellation,
-          fortune: isPlayer1 ? p2Fortune : p1Fortune,
+          letter: p2Letter,
+          lantern: p2Lantern,
+          promises: p2Promises,
+          capsule: p2Capsule,
+          garden: p2Garden,
+          quiz: p2Quiz,
+          constellation: p2Constellation,
+          fortune: p2Fortune,
         }
-      }
+      } : null
     });
     return;
   }
 
+  // Only show reflection when both submitted
+  const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
+  
   res.json({
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
-    reflection: dayProgress.aiReflection || null,
-    completed: dayProgress.completed,
+    reflection: bothSubmitted ? dayProgress.aiReflection : null,
+    completed: bothSubmitted ? dayProgress.completed : false,
     playerMessage,
     partnerMessage
   });

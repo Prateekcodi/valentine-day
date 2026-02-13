@@ -1340,6 +1340,15 @@ export default function Day8Page() {
         if (data.day === 8) {
           setReflection(data.reflection);
           setPartnerSubmitted(true);
+          checkExisting(); // Reload all data
+        }
+      });
+
+      // Listen for partner submitting data - reload status
+      socket.on('partner-acted', (data: { playerId: string; day: number; action: string; data: any }) => {
+        if (data.day === 8 && data.action === 'submit-data') {
+          // Partner submitted their data - reload to check status
+          checkExisting();
         }
       });
       
@@ -1482,6 +1491,8 @@ export default function Day8Page() {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
       }
+      // Reload data to get accurate status
+      await checkExisting();
     } catch (e) { console.error('Submit failed:', e); }
     finally { setLoading(false); }
   };

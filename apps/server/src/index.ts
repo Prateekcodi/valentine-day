@@ -508,7 +508,7 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const dayProgress = room.progress[1];
   const isPlayer1 = room.player1?.id === playerId;
   
-  // Check ALL 8 activities for Day 8 (not just love letter)
+  // Check ALL activities for Day 8 (10 activities total)
   const checkAllSubmitted = (isP1: boolean) => {
     const data = dayProgress.data || {};
     const p = isP1 ? 'player1' : 'player2';
@@ -520,7 +520,8 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
       (data[`${p}Garden`] && data[`${p}Garden`].length > 0) || 
       data[`${p}Quiz`] || 
       data[`${p}Constellation`] || 
-      data[`${p}Fortune`]
+      data[`${p}Fortune`] ||
+      data[`${p}Memory`]
     );
   };
   

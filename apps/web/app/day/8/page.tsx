@@ -2039,6 +2039,42 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
             <div>📱 Shake your phone</div>
             <div>⌨️ Konami: ↑↑↓↓←→←→BA</div>
           </div>
+          {roomId && (
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/day/8/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomId })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert('Day 8 reset! Refresh the page to start fresh.');
+                    setEasterEgg(false);
+                  } else {
+                    alert('Reset failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (err) {
+                  alert('Reset failed. Server may need redeploy.');
+                }
+              }}
+              style={{
+                marginTop: 20,
+                padding: '12px 24px',
+                background: PALETTE.rose,
+                border: 'none',
+                borderRadius: 25,
+                color: 'white',
+                fontSize: 14,
+                cursor: 'pointer',
+                boxShadow: `0 4px 15px ${PALETTE.rose}40`
+              }}
+            >
+              🔄 Restart Day 8
+            </button>
+          )}
           <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginTop: 20 }}>Click anywhere to close</p>
         </div>
       )}

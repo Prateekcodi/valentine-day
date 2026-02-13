@@ -1570,13 +1570,7 @@ export default function Day8Page() {
       } else if (data.player2?.name) {
         setPartnerName(data.player2.name);
       }
-      // Store both players' names
-      if (data.player1 && data.player2) {
-        setBothResponses({
-          player1: { name: data.player1.name || 'Player 1' },
-          player2: { name: data.player2.name || 'Player 2' }
-        });
-      }
+      // NOTE: bothResponses should only be set from checkExisting() when real data is returned
     } catch (e) { console.error('Fetch room failed:', e); }
   };
 
@@ -1745,7 +1739,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
   if (!mounted) return null;
 
   // Show wait for partner screen when only this player has submitted
-  if (submitted && !partnerSubmitted && bothResponses) {
+  if (submitted && !partnerSubmitted) {
     return (
       <div style={{
         minHeight: "100vh",
@@ -1826,8 +1820,8 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
     );
   }
 
-  // Show both responses summary
-  if (submitted && reflection && bothResponses) {
+  // Show both responses summary - only when BOTH have completed ALL activities
+  if (submitted && partnerSubmitted && reflection) {
     return (
       <div style={{
         minHeight: "100vh",

@@ -583,13 +583,28 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   else if ([3, 5, 6].includes(day)) bothSubmitted = dayProgress.data.player1Choice && dayProgress.data.player2Choice;
   else if ([4, 7].includes(day)) bothSubmitted = dayProgress.data.player1Data && dayProgress.data.player2Data;
   else if (day === 8) {
-    // Day 8 requires ALL activities from BOTH players
-    const p1 = dayProgress.data.player1Data || {};
-    const p2 = dayProgress.data.player2Data || {};
-    bothSubmitted = !!(p1.letter && p2.letter && p1.lantern && p2.lantern && 
-                       p1.promises && p2.promises && p1.capsule && p2.capsule &&
-                       p1.garden && p2.garden && p1.quiz && p2.quiz && 
-                       p1.constellation && p2.constellation && p1.fortune && p2.fortune);
+    // Day 8 requires ALL activities from BOTH players (using flat field names)
+    const p1Done = !!(
+      dayProgress.data?.player1Letter &&
+      dayProgress.data?.player1Lantern &&
+      dayProgress.data?.player1Promises?.length > 0 &&
+      dayProgress.data?.player1Capsule &&
+      dayProgress.data?.player1Garden?.length > 0 &&
+      dayProgress.data?.player1Quiz &&
+      dayProgress.data?.player1Constellation &&
+      dayProgress.data?.player1Fortune
+    );
+    const p2Done = !!(
+      dayProgress.data?.player2Letter &&
+      dayProgress.data?.player2Lantern &&
+      dayProgress.data?.player2Promises?.length > 0 &&
+      dayProgress.data?.player2Capsule &&
+      dayProgress.data?.player2Garden?.length > 0 &&
+      dayProgress.data?.player2Quiz &&
+      dayProgress.data?.player2Constellation &&
+      dayProgress.data?.player2Fortune
+    );
+    bothSubmitted = p1Done && p2Done;
   }
 
   if (bothSubmitted) {
@@ -728,24 +743,36 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
   let playerMessage: string | null = null;
   let partnerMessage: string | null = null;
 
-  // For Day 8 (Valentine's Day), return all responses
+  // For Day 8 (Valentine's Day), return all responses only when BOTH are fully complete
   if (day === 8) {
-    // Check if this player has submitted any data
-    const player1HasData = !!(dayProgress.data?.player1Letter || dayProgress.data?.player1Lantern || 
-                              dayProgress.data?.player1Promises?.length || dayProgress.data?.player1Capsule ||
-                              dayProgress.data?.player1Garden?.length || dayProgress.data?.player1Quiz ||
-                              dayProgress.data?.player1Constellation || dayProgress.data?.player1Fortune ||
-                              dayProgress.data?.player1Memory);
-    const player2HasData = !!(dayProgress.data?.player2Letter || dayProgress.data?.player2Lantern || 
-                              dayProgress.data?.player2Promises?.length || dayProgress.data?.player2Capsule ||
-                              dayProgress.data?.player2Garden?.length || dayProgress.data?.player2Quiz ||
-                              dayProgress.data?.player2Constellation || dayProgress.data?.player2Fortune ||
-                              dayProgress.data?.player2Memory);
+    // Check if this player has completed ALL activities (AND logic)
+    const isCompleteP1 = !!(
+      dayProgress.data?.player1Letter &&
+      dayProgress.data?.player1Lantern &&
+      dayProgress.data?.player1Promises?.length > 0 &&
+      dayProgress.data?.player1Capsule &&
+      dayProgress.data?.player1Garden?.length > 0 &&
+      dayProgress.data?.player1Quiz &&
+      dayProgress.data?.player1Constellation &&
+      dayProgress.data?.player1Fortune
+    );
+    const isCompleteP2 = !!(
+      dayProgress.data?.player2Letter &&
+      dayProgress.data?.player2Lantern &&
+      dayProgress.data?.player2Promises?.length > 0 &&
+      dayProgress.data?.player2Capsule &&
+      dayProgress.data?.player2Garden?.length > 0 &&
+      dayProgress.data?.player2Quiz &&
+      dayProgress.data?.player2Constellation &&
+      dayProgress.data?.player2Fortune
+    );
     
-    hasThisPlayerSubmitted = isPlayer1 ? player1HasData : player2HasData;
-    hasPartnerSubmitted = isPlayer1 ? player2HasData : player1HasData;
+    hasThisPlayerSubmitted = isPlayer1 ? isCompleteP1 : isCompleteP2;
+    hasPartnerSubmitted = isPlayer1 ? isCompleteP2 : isCompleteP1;
+    const bothDone = isCompleteP1 && isCompleteP2;
     
-    const responses = {
+    // Only return responses and reflection when BOTH are fully complete
+    const responses = bothDone ? {
       player1: {
         name: room.player1?.name || 'Player 1',
         letter: dayProgress.data?.player1Letter || null,
@@ -770,13 +797,13 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
         fortune: dayProgress.data?.player2Fortune || null,
         memory: dayProgress.data?.player2Memory || null,
       }
-    };
+    } : null;
     
     res.json({
       submitted: hasThisPlayerSubmitted || false,
       partnerSubmitted: hasPartnerSubmitted || false,
-      reflection: dayProgress.aiReflection || null,
-      completed: dayProgress.completed,
+      reflection: bothDone ? (dayProgress.aiReflection || null) : null,
+      completed: bothDone ? dayProgress.completed : false,
       playerMessage: null,
       partnerMessage: null,
       responses

@@ -1362,7 +1362,13 @@ export default function Day8Page() {
   const [petalRain, setPetalRain] = useState(false);
   const [fireworks, setFireworks] = useState(false);
   const [easterEgg, setEasterEgg] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const logoRef = useRef<HTMLDivElement>(null);
+  
+  // Debug logging
+  const debugLog = (...args: any[]) => {
+    if (debugMode) console.log('[Day8 Debug]', ...args);
+  };
   
   // Secret trigger refs
   const [secretHint, setSecretHint] = useState("");
@@ -1385,6 +1391,8 @@ export default function Day8Page() {
   }>({});
   const [myName, setMyName] = useState('');
   const [partnerName, setPartnerName] = useState('');
+  const [roomInfo, setRoomInfo] = useState<any>(null);
+  const [dayStatusData, setDayStatusData] = useState<any>(null);
   const [isPartnerActive, setIsPartnerActive] = useState(false);
   const [bothResponses, setBothResponses] = useState<{
     player1: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string; garden?: { flower: string; message: string }[]; quiz?: number[]; constellation?: string; fortune?: string };
@@ -1535,8 +1543,11 @@ export default function Day8Page() {
   const checkExisting = async function () {
     try {
       const pid = localStorage.getItem('playerId');
+      debugLog('Fetching Day status for room:', roomId, 'player:', pid);
       const res = await fetch(API_URL + '/api/day/' + dayNumber + '/status?room=' + roomId + '&playerId=' + (pid || ''));
       const data = await res.json();
+      debugLog('Day status response:', JSON.stringify(data).substring(0, 500));
+      setDayStatusData(data);
       if (data.submitted) {
         setSubmitted(true);
         if (data.partnerSubmitted) {
@@ -1553,8 +1564,11 @@ export default function Day8Page() {
   
   const fetchRoomInfo = async function () {
     try {
+      debugLog('Fetching room info for:', roomId);
       const res = await fetch(API_URL + '/api/room/' + roomId);
       const data = await res.json();
+      debugLog('Room data:', JSON.stringify(data).substring(0, 500));
+      setRoomInfo(data);
       const pid = localStorage.getItem('playerId');
       const myNameFromStorage = localStorage.getItem('playerName') || 'You';
       setMyName(myNameFromStorage);
@@ -2080,6 +2094,44 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
       )}
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px 80px" }}>
+        {/* Debug Toggle */}
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          style={{
+            position: 'fixed', bottom: 80, right: 10, zIndex: 100,
+            background: 'rgba(255,0,0,0.3)', border: '1px solid red', borderRadius: 4,
+            color: 'white', fontSize: 10, padding: '4px 8px', cursor: 'pointer'
+          }}
+        >
+          DEBUG
+        </button>
+        
+        {/* Debug Panel */}
+        {debugMode && roomInfo && (
+          <div style={{
+            position: 'fixed', bottom: 120, right: 10, zIndex: 100,
+            background: 'rgba(0,0,0,0.9)', border: '2px solid red', borderRadius: 8,
+            padding: 12, maxWidth: 300, fontSize: 11, color: 'white',
+            maxHeight: '60vh', overflow: 'auto'
+          }}>
+            <div style={{fontWeight:'bold', color:'red', marginBottom:8}}>🐛 DEBUG PANEL</div>
+            <div><strong>Room:</strong> {roomId}</div>
+            <div><strong>My ID:</strong> {localStorage.getItem('playerId')?.substring(0,15)}...</div>
+            <div><strong>Player 1:</strong> {roomInfo.player1?.name || 'None'}</div>
+            <div><strong>Player 2:</strong> {roomInfo.player2?.name || 'None'}</div>
+            <hr style={{borderColor:'#333', margin:'8px 0'}}/>
+            <div><strong>Current Section:</strong> {section}</div>
+            <div><strong>My Submitted:</strong> {submitted ? 'YES' : 'NO'}</div>
+            <div><strong>Partner Submitted:</strong> {partnerSubmitted ? 'YES' : 'NO'}</div>
+            <div><strong>Both Ready:</strong> {bothResponses ? 'YES' : 'NO'}</div>
+            <hr style={{borderColor:'#333', margin:'8px 0'}}/>
+            <div><strong>Day 8 Status:</strong></div>
+            <pre style={{fontSize:9, overflow:'auto', maxHeight:150}}>
+              {JSON.stringify(dayStatusData, (k,v) => typeof v === 'string' ? v?.substring(0,50) : v, 2)}
+            </pre>
+          </div>
+        )}
+        
         {/* Header */}
         <div style={{ textAlign: "center", padding: "28px 0 20px" }}>
           <div 

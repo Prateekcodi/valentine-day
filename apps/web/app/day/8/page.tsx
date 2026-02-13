@@ -916,16 +916,16 @@ function LoveGarden({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
 // 15. FORTUNE COOKIES
 // ═══════════════════════════════════════════════════════════
 const FORTUNES = [
-  "💕 Your love story is the greatest one ever told.",
-  "✨ The stars aligned the day you two met.",
-  "🌹 A single rose speaks louder than a thousand words.",
-  "💫 Love is not something you find — it finds you.",
-  "🌟 Your hearts beat in perfect harmony.",
-  "💖 Every ending is a new beginning for the two of you.",
-  "🌸 The most beautiful journeys begin with us.",
-  "💎 True love is rare — you have found it.",
-  "🌙 Even the moon knows your love is extraordinary.",
-  "🦋 When two souls recognise each other, time stands still.",
+  "💕 Pyaar aisa ho toh life full HD mode mein chalti hai.",
+  "✨ Stars aligned nahi hue, bas tum dono ka vibe match ho gaya.",
+  "🌹 Ek chhota sa message bhi kabhi-kabhi hazaar lafzon se zyada bol deta hai.",
+  "💫 Love dhundhne se nahi milta — bas ek din *ping* ho jaata hai.",
+  "🌟 Dil alag-alag, par timing surprisingly perfect hai.",
+  "💖 Har ending nahi, par tum dono ke saath har chapter special lagta hai.",
+  "🌸 Sabse khoobsurat journey wahi hoti hai jahan ‘hum’ shuru hota hai.",
+  "💎 True love rare hota hai — aur yeh wali kaafi precious hai.",
+  "🌙 Chaand bhi sochta hoga, itna pyaar bina mile kaise ho gaya?",
+  "🦋 Jab vibe match ho jaaye, distance sirf ek word reh jaata hai.",
 ];
 
 function FortuneCookies({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
@@ -992,18 +992,45 @@ function FortuneCookies({ onUnlock, roomId }: { onUnlock: (id: string) => void; 
 // 16. LOVE LANGUAGE QUIZ
 // ═══════════════════════════════════════════════════════════
 const LOVE_Q = [
-  { q: "When your partner is sad, you...", opts: ["Hold them close 🤗", "Say 'I love you' 💬", "Do their chores 🏠", "Give a gift 🎁"], scores: [0, 1, 2, 3] },
-  { q: "Your ideal Valentine's Day is...", opts: ["Long slow dance 💃", "Heartfelt letter 📝", "A cooked meal 🍝", "Surprise gift 🎁"], scores: [0, 1, 2, 3] },
-  { q: "You feel most loved when...", opts: ["They hold your hand 🤝", "They say kind words 💌", "They help you out 🛠️", "They give surprises 🎉"], scores: [0, 1, 2, 3] },
-  { q: "In arguments, you need...", opts: ["A long hug 🤗", "Apology words 🗣️", "Acts of making up 🧹", "A peace offering 🕊️"], scores: [0, 1, 2, 3] },
-  { q: "Your love superpower is...", opts: ["Physical warmth 🌡️", "Beautiful words 🌺", "Acts of service 🌟", "Thoughtful gifts 💝"], scores: [0, 1, 2, 3] },
+  { 
+    q: "When your partner is sad, you...", 
+    opts: ["Bas paas rehna 🤗", "Sweet words bolna 💬", "Unka kaam apna bana lena 🏠", "Chhota sa surprise 🎁"], 
+    scores: [0, 1, 2, 3] 
+  },
+  { 
+    q: "Your ideal Valentine's Day is...", 
+    opts: ["Sirf saath rehna 💃", "Dil se likha message 📝", "Kuch effort unke liye 🍝", "Cute surprise 🎁"], 
+    scores: [0, 1, 2, 3] 
+  },
+  { 
+    q: "You feel most loved when...", 
+    opts: ["Unki presence se 🤝", "Unki baaton se 💌", "Unke actions se 🛠️", "Unki yaadon se 🎉"], 
+    scores: [0, 1, 2, 3] 
+  },
+  { 
+    q: "In arguments, you need...", 
+    opts: ["Ek tight hug 🤗", "Dil se sorry 🗣️", "Actions se manao 🧹", "Peace offering mode 🕊️"], 
+    scores: [0, 1, 2, 3] 
+  },
+  { 
+    q: "Your love superpower is...", 
+    opts: ["Warmth aur comfort 🌡️", "Dil se nikle words 🌺", "Kaam se pyaar 🌟", "Meaningful surprises 💝"], 
+    scores: [0, 1, 2, 3] 
+  },
 ];
-const LOVE_LANGS = ["Physical Touch 🤗", "Words of Affirmation 💬", "Acts of Service 🏠", "Gift Giving 🎁"];
+
+const LOVE_LANGS = [
+  "Physical Touch 🤗",
+  "Words of Affirmation 💬",
+  "Acts of Service 🏠",
+  "Gift Giving 🎁"
+];
+
 const LOVE_DESC = [
-  "You express and receive love most through touch — hugs, holding hands, physical presence. Your love language is the most instinctive human connection.",
-  "Words mean everything to you. Hearing 'I love you,' receiving heartfelt notes, or being verbally affirmed fills your love tank completely.",
-  "Love is shown through actions. You feel most loved when someone goes out of their way to help — and you show love the same way.",
-  "Thoughtful gifts are your love language — not for materialism, but for the meaning behind them. A carefully chosen gift says 'I was thinking of you.'",
+  "Tumhara pyaar presence mein dikhta hai — paas rehna, comfort dena, bina bole saath khade rehna. Tum ho toh sab theek lagta hai.",
+  "Tumhare liye words magic jaise hote hain. Ek simple ‘I’m here’ bhi tumhara mood aur din dono better kar deta hai.",
+  "Tum pyaar bolte kam ho, dikhate zyada ho. Help karna, effort lena — yahi tumhara sabse strong way hai love dikhane ka.",
+  "Tumhare gifts chhote ho sakte hain, par feelings heavy hoti hain. Har gift ka matlab hota hai — ‘tum yaad the.’",
 ];
 
 function LoveLanguageQuiz({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {

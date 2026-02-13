@@ -153,7 +153,7 @@ export default function Day4Page() {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-50 via-peach-50 to-orange-100">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-900 via-rose-900 to-pink-900">
       {/* Sound player */}
       <SoundPlayer autoPlay={true} />
       

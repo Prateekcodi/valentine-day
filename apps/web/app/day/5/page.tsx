@@ -133,7 +133,7 @@ export default function Day5Page() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-900 via-rose-900 to-pink-900">
       {/* Sound player */}
       <SoundPlayer autoPlay={true} />
       

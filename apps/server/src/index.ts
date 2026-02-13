@@ -508,22 +508,39 @@ app.get('/api/day/2/status', async (req: Request, res: Response) => {
   const dayProgress = room.progress[1];
   const isPlayer1 = room.player1?.id === playerId;
   
-  const hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Message : !!dayProgress.data?.player2Message;
-  const hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Message : !!dayProgress.data?.player1Message;
+  // Check ALL 8 activities for Day 8 (not just love letter)
+  const checkAllSubmitted = (isP1: boolean) => {
+    const data = dayProgress.data || {};
+    const p = isP1 ? 'player1' : 'player2';
+    return !!(
+      data[`${p}Letter`] || 
+      data[`${p}Lantern`] || 
+      (data[`${p}Promises`] && data[`${p}Promises`].length > 0) || 
+      data[`${p}Capsule`] || 
+      (data[`${p}Garden`] && data[`${p}Garden`].length > 0) || 
+      data[`${p}Quiz`] || 
+      data[`${p}Constellation`] || 
+      data[`${p}Fortune`]
+    );
+  };
   
-  const player1Message = dayProgress.data?.player1Message || null;
-  const player2Message = dayProgress.data?.player2Message || null;
+  const hasThisPlayerSubmitted = isPlayer1 ? checkAllSubmitted(true) : checkAllSubmitted(false);
+  const hasPartnerSubmitted = isPlayer1 ? checkAllSubmitted(false) : checkAllSubmitted(true);
   
   // Only show reflection and completed when BOTH have submitted
   const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
+  
+  // Get player's letter for the response
+  const playerLetter = isPlayer1 ? (dayProgress.data?.player1Letter || null) : (dayProgress.data?.player2Letter || null);
+  const partnerLetter = isPlayer1 ? (dayProgress.data?.player2Letter || null) : (dayProgress.data?.player1Letter || null);
   
   res.json({
     submitted: hasThisPlayerSubmitted || false,
     partnerSubmitted: hasPartnerSubmitted || false,
     reflection: bothSubmitted ? dayProgress.aiReflection : null,
     completed: bothSubmitted ? dayProgress.completed : false,
-    playerMessage: isPlayer1 ? player1Message : player2Message,
-    partnerMessage: isPlayer1 ? player2Message : player1Message
+    playerMessage: playerLetter,
+    partnerMessage: partnerLetter
   });
 });
 

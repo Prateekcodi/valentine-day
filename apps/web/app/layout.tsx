@@ -9,13 +9,16 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: '7 Days, One Choice | Valentine Week 2026',
+  title: '💕 Valentine Week 2026 | Love Story',
   description: 'A time-locked Valentine Week experience. February 7-14, 2026.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Valentine Week',
+  },
+  icons: {
+    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💕</text></svg>',
   },
 };
 

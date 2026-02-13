@@ -3,8 +3,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { socketClient } from '@/lib/socket';
+import { SoundPlayer } from '@/components/ui/SoundPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+// Cinematic opening sound
+const CINEMATIC_SOUND = '/sound/freesound_community-chonology-of-love-6094.mp3';
 
 // ═══════════════════════════════════════════════════════════
 // PALETTE & COLORS
@@ -1259,6 +1263,7 @@ export default function Day8Page() {
 
   // Valentine features state
   const [opened, setOpened] = useState(false);
+  const [romanticSound, setRomanticSound] = useState<string | null>(null);
   const [section, setSection] = useState("letter");
   const [unlocked, setUnlocked] = useState<string[]>(["first"]);
   const [toastBadge, setToastBadge] = useState<typeof ALL_BADGES[0] | null>(null);
@@ -1904,7 +1909,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
     <div style={{ minHeight: "100vh", background: PALETTE.black, cursor: "none" }}>
       <style>{globalStyles}</style>
       <CursorTrail />
-      <CinematicOpening onDone={() => setOpened(true)} />
+      <CinematicOpening onDone={() => { setOpened(true); setRomanticSound(CINEMATIC_SOUND); }} />
     </div>
   );
 
@@ -1923,8 +1928,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
       <PetalRain active={petalRain} />
       <Fireworks active={fireworks} />
       {toastBadge && <AchievementToast badge={toastBadge} onDone={() => setToastBadge(null)} />}
-
-      {/* Easter egg overlay */}
+      {romanticSound && <SoundPlayer autoPlay={true} />}
       {easterEgg && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 9997, display: "flex", alignItems: "center", justifyContent: "center",

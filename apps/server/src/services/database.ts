@@ -55,10 +55,10 @@ export async function connectToDatabase(): Promise<Db | null> {
     mongoAvailable = true;
     console.log('✅ Connected to MongoDB');
     
-    // Create indexes
+    // Create indexes - NO TTL for permanent storage
     try {
       await db.collection('rooms').createIndex({ id: 1 }, { unique: true });
-      await db.collection('rooms').createIndex({ createdAt: 1 }, { expireAfterSeconds: 691200 }); // 8 days TTL
+      // Removed TTL index - data is now permanent
       await db.collection('rooms').createIndex({ 'player1.id': 1 });
       await db.collection('rooms').createIndex({ 'player2.id': 1 });
     } catch (indexError) {

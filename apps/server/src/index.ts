@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import { generateRoomId, generatePlayerId } from './utils';
 import { setupSocketHandlers } from './socket/handlers';
 import { connectToDatabase, saveRoom, getRoom, initializeProgress, Room, DayProgress, isMongoAvailable } from './services/database';
-import { generateAIReflection } from './services/ai';
+import { generateAIReflection, generateLoveLetter } from './services/ai';
 
 dotenv.config();
 
@@ -245,6 +245,39 @@ async function loadRoomToMemory(roomId: string): Promise<any | null> {
 // Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Generate AI Love Letter
+app.post('/api/love-letter', async (req: Request, res: Response) => {
+  const { senderName, recipientName } = req.body;
+  
+  if (!senderName || !recipientName) {
+    res.status(400).json({ error: 'senderName and recipientName are required' });
+    return;
+  }
+  
+  try {
+    const letter = await generateLoveLetter(senderName, recipientName);
+    res.json({ letter });
+  } catch (error) {
+    console.error('Love letter generation error:', error);
+    res.status(500).json({ error: 'Failed to generate love letter' });
+  }
+});
+
+// MongoDB connection test
+app.get('/mongo-test', async (req: Request, res: Response) => {
+  try {
+    const connected = isMongoAvailable();
+    const state = connected ? 1 : 0;
+    res.json({
+      mongo: state === 1 ? 'CONNECTED' : 'NOT CONNECTED',
+      state,
+      message: state === 1 ? '✅ MongoDB is connected - data will be permanent!' : '⚠️ Using memory storage - data will be lost on restart'
+    });
+  } catch (e) {
+    res.status(500).json({ error: (e as Error).message });
+  }
 });
 
 // Root route - prevents 404 on domain visit
@@ -657,6 +690,62 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       playerResponse: playerData?.response || null,
       partnerNeed: partnerData?.need || null,
       partnerResponse: partnerData?.response || null
+    });
+    return;
+  } else if (day === 8) {
+    // Day 8 - Valentine's Day: Return all activities
+    hasThisPlayerSubmitted = !!dayProgress.data?.completed;
+    hasPartnerSubmitted = isPlayer1 
+      ? !!dayProgress.data?.player2Letter 
+      : !!dayProgress.data?.player1Letter;
+    
+    const p1Letter = dayProgress.data?.player1Letter || null;
+    const p2Letter = dayProgress.data?.player2Letter || null;
+    const p1Lantern = dayProgress.data?.player1Lantern || null;
+    const p2Lantern = dayProgress.data?.player2Lantern || null;
+    const p1Promises = dayProgress.data?.player1Promises || [];
+    const p2Promises = dayProgress.data?.player2Promises || [];
+    const p1Capsule = dayProgress.data?.player1Capsule || null;
+    const p2Capsule = dayProgress.data?.player2Capsule || null;
+    const p1Garden = dayProgress.data?.player1Garden || [];
+    const p2Garden = dayProgress.data?.player2Garden || [];
+    const p1Quiz = dayProgress.data?.player1Quiz || null;
+    const p2Quiz = dayProgress.data?.player2Quiz || null;
+    const p1Constellation = dayProgress.data?.player1Constellation || null;
+    const p2Constellation = dayProgress.data?.player2Constellation || null;
+    const p1Fortune = dayProgress.data?.player1Fortune || null;
+    const p2Fortune = dayProgress.data?.player2Fortune || null;
+    
+    res.json({
+      submitted: hasThisPlayerSubmitted || false,
+      partnerSubmitted: hasPartnerSubmitted || false,
+      reflection: dayProgress.aiReflection || null,
+      completed: dayProgress.completed,
+      // Full responses for summary
+      responses: {
+        player1: {
+          name: room.player1?.name || 'Player 1',
+          letter: isPlayer1 ? p1Letter : p2Letter,
+          lantern: isPlayer1 ? p1Lantern : p2Lantern,
+          promises: isPlayer1 ? p1Promises : p2Promises,
+          capsule: isPlayer1 ? p1Capsule : p2Capsule,
+          garden: isPlayer1 ? p1Garden : p2Garden,
+          quiz: isPlayer1 ? p1Quiz : p2Quiz,
+          constellation: isPlayer1 ? p1Constellation : p2Constellation,
+          fortune: isPlayer1 ? p1Fortune : p2Fortune,
+        },
+        player2: {
+          name: room.player2?.name || 'Player 2',
+          letter: isPlayer1 ? p2Letter : p1Letter,
+          lantern: isPlayer1 ? p2Lantern : p1Lantern,
+          promises: isPlayer1 ? p2Promises : p1Promises,
+          capsule: isPlayer1 ? p2Capsule : p1Capsule,
+          garden: isPlayer1 ? p2Garden : p1Garden,
+          quiz: isPlayer1 ? p2Quiz : p1Quiz,
+          constellation: isPlayer1 ? p2Constellation : p1Constellation,
+          fortune: isPlayer1 ? p2Fortune : p1Fortune,
+        }
+      }
     });
     return;
   }

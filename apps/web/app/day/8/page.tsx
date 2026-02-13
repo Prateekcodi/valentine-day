@@ -371,33 +371,63 @@ function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
   const [copied, setCopied] = useState(false);
   const [done, setDone] = useState(false);
 
-  const generate = () => {
-    const tmpl = LETTER_TEMPLATES[Math.floor(Math.random() * LETTER_TEMPLATES.length)];
-    const full = tmpl(n1, n2.current);
-    setLetter(full);
-    setTyped("");
+  const generate = async () => {
     setGenerating(true);
-    let i = 0;
-    const t = setInterval(() => {
-      i++;
-      setTyped(full.slice(0, i));
-      if (i >= full.length) {
-        clearInterval(t);
-        setGenerating(false);
-        if (!done) { setDone(true); onUnlock("letter"); }
-        // Emit socket event
-        if (roomId) {
-          const pid = localStorage.getItem('playerId');
-          socketClient.emit('day-action', { 
-            roomId, 
-            playerId: pid, 
-            day: 8, 
-            action: 'letter', 
-            data: { message: full } 
-          });
+    try {
+      // Call AI API for personalized love letter
+      const res = await fetch(API_URL + '/api/love-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          senderName: n1 || 'My Love', 
+          recipientName: n2.current || 'Darling' 
+        }),
+      });
+      const data = await res.json();
+      const full = data.letter || LETTER_TEMPLATES[Math.floor(Math.random() * LETTER_TEMPLATES.length)](n1, n2.current);
+      setLetter(full);
+      setTyped("");
+      let i = 0;
+      const t = setInterval(() => {
+        i++;
+        setTyped(full.slice(0, i));
+        if (i >= full.length) {
+          clearInterval(t);
+          setGenerating(false);
+          if (!done) { setDone(true); onUnlock("letter"); }
+          // Emit socket event
+          if (roomId) {
+            const pid = localStorage.getItem('playerId');
+            socketClient.emit('day-action', { 
+              roomId, 
+              playerId: pid, 
+              day: 8, 
+              action: 'letter', 
+              data: { message: full } 
+            });
+          }
         }
+      }, 18);
+    } catch (e) {
+      console.error('Failed to generate letter:', e);
+      // Fallback to template
+      const tmpl = LETTER_TEMPLATES[Math.floor(Math.random() * LETTER_TEMPLATES.length)];
+      const full = tmpl(n1, n2.current);
+      setLetter(full);
+      setTyped("");
+      setGenerating(false);
+      if (!done) { setDone(true); onUnlock("letter"); }
+      if (roomId) {
+        const pid = localStorage.getItem('playerId');
+        socketClient.emit('day-action', { 
+          roomId, 
+          playerId: pid, 
+          day: 8, 
+          action: 'letter', 
+          data: { message: full } 
+        });
       }
-    }, 18);
+    }
   };
 
   const copy = () => {
@@ -607,7 +637,7 @@ const HEART_STARS = [
   { x: 70, y: 62 }, { x: 75, y: 45 }, { x: 65, y: 30 },
 ];
 
-function StarConstellation({ onUnlock }: { onUnlock: (id: string) => void }) {
+function StarConstellation({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [connected, setConnected] = useState<number[]>([]);
   const [done, setDone] = useState(false);
   const [shooting, setShooting] = useState<{ id: number; x: number; y: number } | null>(null);
@@ -628,6 +658,17 @@ function StarConstellation({ onUnlock }: { onUnlock: (id: string) => void }) {
     if (nc.length === HEART_STARS.length) {
       setDone(true);
       onUnlock("constellation");
+      // Emit socket event
+      if (roomId) {
+        const pid = localStorage.getItem('playerId');
+        socketClient.emit('day-action', { 
+          roomId, 
+          playerId: pid, 
+          day: 8, 
+          action: 'constellation', 
+          data: { message: 'Connected all stars in the love constellation!' } 
+        });
+      }
     }
   };
 
@@ -709,7 +750,7 @@ const SEEDS = [
   { id: "cherry", emoji: "🌸", name: "Cherry Blossom", cost: 5, msg: "Fleeting and precious as us" },
 ];
 
-function LoveGarden({ onUnlock }: { onUnlock: (id: string) => void }) {
+function LoveGarden({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [water, setWater] = useState(10);
   const [plants, setPlants] = useState<Array<{ id: number; seed: typeof SEEDS[0]; age: number }>>([]);
   const [stage, setStage] = useState<Record<number, number>>({});
@@ -725,6 +766,17 @@ function LoveGarden({ onUnlock }: { onUnlock: (id: string) => void }) {
     setTimeout(() => setStage(s => ({ ...s, [id]: 2 })), 2800);
     setTimeout(() => setStage(s => ({ ...s, [id]: 3 })), 4500);
     onUnlock("garden");
+    // Emit socket event
+    if (roomId) {
+      const pid = localStorage.getItem('playerId');
+      socketClient.emit('day-action', { 
+        roomId, 
+        playerId: pid, 
+        day: 8, 
+        action: 'garden', 
+        data: { flower: seed.emoji, message: seed.msg } 
+      });
+    }
   };
 
   const waterGarden = () => {
@@ -807,7 +859,7 @@ const FORTUNES = [
   "🦋 When two souls recognise each other, time stands still.",
 ];
 
-function FortuneCookies({ onUnlock }: { onUnlock: (id: string) => void }) {
+function FortuneCookies({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [cracked, setCracked] = useState<boolean | null>(null);
   const [fortune, setFortune] = useState("");
   const [done, setDone] = useState(false);
@@ -817,6 +869,17 @@ function FortuneCookies({ onUnlock }: { onUnlock: (id: string) => void }) {
     const f = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     setFortune(f);
     if (!done) { setDone(true); onUnlock("fortune"); }
+    // Emit socket event
+    if (roomId) {
+      const pid = localStorage.getItem('playerId');
+      socketClient.emit('day-action', { 
+        roomId, 
+        playerId: pid, 
+        day: 8, 
+        action: 'fortune', 
+        data: { message: f } 
+      });
+    }
   };
 
   const reset = () => { setCracked(null); setFortune(""); };
@@ -874,7 +937,7 @@ const LOVE_DESC = [
   "Thoughtful gifts are your love language — not for materialism, but for the meaning behind them. A carefully chosen gift says 'I was thinking of you.'",
 ];
 
-function LoveLanguageQuiz({ onUnlock }: { onUnlock: (id: string) => void }) {
+function LoveLanguageQuiz({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   const [q, setQ] = useState(0);
   const [scores, setScores] = useState([0, 0, 0, 0]);
   const [result, setResult] = useState<number | null>(null);
@@ -889,8 +952,20 @@ function LoveLanguageQuiz({ onUnlock }: { onUnlock: (id: string) => void }) {
     setTimeout(() => {
       if (q + 1 >= LOVE_Q.length) {
         const max = Math.max(...ns);
-        setResult(ns.indexOf(max));
+        const res = ns.indexOf(max);
+        setResult(res);
         onUnlock("quiz");
+        // Emit socket event
+        if (roomId) {
+          const pid = localStorage.getItem('playerId');
+          socketClient.emit('day-action', { 
+            roomId, 
+            playerId: pid, 
+            day: 8, 
+            action: 'quiz', 
+            data: { answers: ns, result: LOVE_LANGS[res] } 
+          });
+        }
       } else { setQ(q => q + 1); setSel(null); }
     }, 700);
   };
@@ -1190,6 +1265,7 @@ export default function Day8Page() {
   const [petalRain, setPetalRain] = useState(false);
   const [fireworks, setFireworks] = useState(false);
   const [easterEgg, setEasterEgg] = useState(false);
+  const logoRef = useRef<HTMLDivElement>(null);
   
   // Partner real-time state
   const [partnerData, setPartnerData] = useState<{
@@ -1205,8 +1281,8 @@ export default function Day8Page() {
   const [partnerName, setPartnerName] = useState('');
   const [isPartnerActive, setIsPartnerActive] = useState(false);
   const [bothResponses, setBothResponses] = useState<{
-    player1: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string };
-    player2: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string };
+    player1: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string; garden?: { flower: string; message: string }[]; quiz?: number[]; constellation?: string; fortune?: string };
+    player2: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string; garden?: { flower: string; message: string }[]; quiz?: number[]; constellation?: string; fortune?: string };
   } | null>(null);
 
   // API check and socket setup
@@ -1267,6 +1343,91 @@ export default function Day8Page() {
     return function () { 
       clearInterval(poll); 
       socketClient.removeAllListeners();
+    };
+  }, []);
+
+  // Secret easter egg triggers
+  useEffect(() => {
+    let tapCount = 0;
+    let tapTimer: NodeJS.Timeout;
+    let lastShake = 0;
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+    let konamiIndex = 0;
+
+    // Tap logo 7 times
+    const handleLogoClick = () => {
+      tapCount++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
+      if (tapCount >= 7) {
+        tapCount = 0;
+        setEasterEgg(true);
+        unlock("secret");
+      }
+    };
+
+    // Long press (3 seconds)
+    let pressTimer: NodeJS.Timeout;
+    const handleLogoMouseDown = () => {
+      pressTimer = setTimeout(() => {
+        setEasterEgg(true);
+        unlock("secret");
+      }, 3000);
+    };
+    const handleLogoMouseUp = () => {
+      clearTimeout(pressTimer);
+    };
+
+    // Keyboard - Konami code
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          konamiIndex = 0;
+          setEasterEgg(true);
+          unlock("secret");
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    };
+
+    // Shake detection (mobile)
+    const handleDeviceMotion = (e: DeviceMotionEvent) => {
+      const now = Date.now();
+      if (now - lastShake < 1000) return;
+      const acc = e.acceleration;
+      if (acc && (Math.abs(acc.x || 0) > 25 || Math.abs(acc.y || 0) > 25 || Math.abs(acc.z || 0) > 25)) {
+        lastShake = now;
+        setEasterEgg(true);
+        unlock("secret");
+      }
+    };
+
+    // Add keyboard listener
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('devicemotion', handleDeviceMotion);
+
+    // Attach to logo element using ref
+    const logoEl = logoRef.current;
+    if (logoEl) {
+      logoEl.addEventListener('click', handleLogoClick);
+      logoEl.addEventListener('mousedown', handleLogoMouseDown);
+      logoEl.addEventListener('mouseup', handleLogoMouseUp);
+      logoEl.addEventListener('mouseleave', handleLogoMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('devicemotion', handleDeviceMotion);
+      clearTimeout(tapTimer);
+      clearTimeout(pressTimer);
+      if (logoEl) {
+        logoEl.removeEventListener('click', handleLogoClick);
+        logoEl.removeEventListener('mousedown', handleLogoMouseDown);
+        logoEl.removeEventListener('mouseup', handleLogoMouseUp);
+        logoEl.removeEventListener('mouseleave', handleLogoMouseUp);
+      }
     };
   }, []);
 
@@ -1331,6 +1492,94 @@ export default function Day8Page() {
   };
 
   const handleContinue = function () { router.push('/room/' + roomId); };
+
+  const handleDownload = function () {
+    if (!bothResponses || !reflection) return;
+    
+    const p1 = bothResponses.player1;
+    const p2 = bothResponses.player2;
+    
+    const content = `
+╔══════════════════════════════════════════════════════════════╗
+║            💕 VALENTINE'S DAY 2026 - OUR LOVE STORY 💕        ║
+╚══════════════════════════════════════════════════════════════╝
+
+📅 Generated on: ${new Date().toLocaleDateString('en-US', { 
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+})}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💝 AI REFLECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${reflection}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 ${myName || 'Player 1'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💌 Love Letter:
+${p1.letter || 'Not shared'}
+
+🏮 Wish Lantern:
+${p1.lantern || 'Not shared'}
+
+⭐ Promises:
+${p1.promises?.length ? p1.promises.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'No promises made'}
+
+📦 Time Capsule:
+${p1.capsule || 'Not shared'}
+
+${p1.garden?.length ? `🌺 Love Garden:\n${p1.garden.map(g => `- ${g.flower}: ${g.message}`).join('\n')}` : ''}
+
+${p1.quiz ? `💝 Love Language Quiz: Completed (scores: ${p1.quiz.join(', ')})` : ''}
+
+${p1.constellation ? `⭐ Star Constellation: ${p1.constellation}` : ''}
+
+${p1.fortune ? `🥠 Fortune: ${p1.fortune}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💕 ${partnerName || 'Player 2'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💌 Love Letter:
+${p2.letter || 'Not shared'}
+
+🏮 Wish Lantern:
+${p2.lantern || 'Not shared'}
+
+⭐ Promises:
+${p2.promises?.length ? p2.promises.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'No promises made'}
+
+📦 Time Capsule:
+${p2.capsule || 'Not shared'}
+
+${p2.garden?.length ? `🌺 Love Garden:\n${p2.garden.map(g => `- ${g.flower}: ${g.message}`).join('\n')}` : ''}
+
+${p2.quiz ? `💝 Love Language Quiz: Completed (scores: ${p2.quiz.join(', ')})` : ''}
+
+${p2.constellation ? `⭐ Star Constellation: ${p2.constellation}` : ''}
+
+${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💕 Thank you for sharing this beautiful journey together!
+   Created with love for Valentine's Day 2026 💕
+`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `valentine-2026-${roomId || 'love-story'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Achievement unlock
   const unlock = useCallback((id: string) => {
@@ -1427,19 +1676,48 @@ export default function Day8Page() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <span style={{ fontSize: 24 }}>👤</span>
                   <span style={{ color: PALETTE.blush, fontWeight: 700, fontSize: 16 }}>{myName || 'You'}</span>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Your love letter</span>
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Your journey</span>
                 </div>
-                <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic" }}>
-                  {bothResponses?.player1?.letter || bothResponses?.player2?.letter || "You've shared your heart..."}
-                </p>
+                
+                {/* Love Letter */}
+                {(bothResponses?.player1?.letter || bothResponses?.player2?.letter) && (
+                  <div style={{ marginBottom: 12 }}>
+                    <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
+                    <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                      {(bothResponses?.player1?.letter || bothResponses?.player2?.letter || "").substring(0, 150)}...
+                    </p>
+                  </div>
+                )}
+                
+                {/* Lantern Wish */}
+                {(bothResponses?.player1?.lantern || bothResponses?.player2?.lantern) && (
+                  <div style={{ marginBottom: 12 }}>
+                    <span style={{ color: PALETTE.gold, fontSize: 12 }}>🏮 Wish Lantern:</span>
+                    <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                      {bothResponses?.player1?.lantern || bothResponses?.player2?.lantern}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Promises */}
                 {bothResponses?.player1?.promises && bothResponses.player1.promises.length > 0 && (
-                  <div style={{ marginTop: 12 }}>
+                  <div style={{ marginBottom: 12 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Promises:</span>
                     <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
                       {bothResponses.player1.promises?.slice(0, 3).map((p, i) => (
                         <li key={i}>{p}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+                
+                {/* Capsule */}
+                {(bothResponses?.player1?.capsule || bothResponses?.player2?.capsule) && (
+                  <div style={{ marginBottom: 12 }}>
+                    <span style={{ color: PALETTE.gold, fontSize: 12 }}>📦 Time Capsule:</span>
+                    <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                      {(bothResponses?.player1?.capsule || bothResponses?.player2?.capsule || "").substring(0, 100)}...
+                    </p>
                   </div>
                 )}
               </div>
@@ -1455,19 +1733,48 @@ export default function Day8Page() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <span style={{ fontSize: 24 }}>💕</span>
                     <span style={{ color: "#c084fc", fontWeight: 700, fontSize: 16 }}>{partnerName || 'Partner'}</span>
-                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Their love letter</span>
+                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Their journey</span>
                   </div>
-                  <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic" }}>
-                    {bothResponses?.player2?.letter || bothResponses?.player1?.letter || "Waiting for their response..."}
-                  </p>
+                  
+                  {/* Love Letter */}
+                  {(bothResponses?.player2?.letter || bothResponses?.player1?.letter) && (
+                    <div style={{ marginBottom: 12 }}>
+                      <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
+                      <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                        {(bothResponses?.player2?.letter || bothResponses?.player1?.letter || "").substring(0, 150)}...
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Lantern Wish */}
+                  {(bothResponses?.player2?.lantern || bothResponses?.player1?.lantern) && (
+                    <div style={{ marginBottom: 12 }}>
+                      <span style={{ color: PALETTE.gold, fontSize: 12 }}>🏮 Wish Lantern:</span>
+                      <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                        {bothResponses?.player2?.lantern || bothResponses?.player1?.lantern}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Promises */}
                   {bothResponses?.player2?.promises && bothResponses.player2.promises.length > 0 && (
-                    <div style={{ marginTop: 12 }}>
+                    <div style={{ marginBottom: 12 }}>
                       <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Their promises:</span>
                       <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
                         {bothResponses.player2.promises?.slice(0, 3).map((p, i) => (
                           <li key={i}>{p}</li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+                  
+                  {/* Capsule */}
+                  {(bothResponses?.player2?.capsule || bothResponses?.player1?.capsule) && (
+                    <div style={{ marginBottom: 12 }}>
+                      <span style={{ color: PALETTE.gold, fontSize: 12 }}>📦 Their Time Capsule:</span>
+                      <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                        {(bothResponses?.player2?.capsule || bothResponses?.player1?.capsule || "").substring(0, 100)}...
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1489,9 +1796,14 @@ export default function Day8Page() {
               <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginBottom: 20 }}>
                 Thank you for sharing this journey together.
               </p>
-              <SparkBtn onClick={handleContinue} color={PALETTE.rose}>
-                Continue to Room 🏠
-              </SparkBtn>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <SparkBtn onClick={handleDownload} color={PALETTE.gold}>
+                  📥 Download Our Story 💕
+                </SparkBtn>
+                <SparkBtn onClick={handleContinue} color={PALETTE.rose}>
+                  Continue to Room 🏠
+                </SparkBtn>
+              </div>
             </div>
           </GCard>
         </div>
@@ -1544,8 +1856,8 @@ export default function Day8Page() {
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px 80px" }}>
         {/* Header */}
         <div style={{ textAlign: "center", padding: "28px 0 20px" }}>
-          <div style={{ fontSize: 52, marginBottom: 10, animation: "floatBob 3s ease-in-out infinite",
-            filter: `drop-shadow(0 0 20px ${PALETTE.rose})` }}>💕</div>
+          <div ref={logoRef} id="valentine-logo" style={{ fontSize: 52, marginBottom: 10, animation: "floatBob 3s ease-in-out infinite",
+            filter: `drop-shadow(0 0 20px ${PALETTE.rose})`, cursor: 'pointer' }}>💕</div>
           <h1 style={{
             fontFamily: "Georgia,serif", fontWeight: 900, fontSize: 28, letterSpacing: 3,
             background: `linear-gradient(135deg,${PALETTE.gold},${PALETTE.blush},${PALETTE.gold})`,

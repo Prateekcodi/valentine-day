@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { rooms } from '../index';
 import { formatPrompt } from '../utils';
 import { generateAIReflection } from '../services/ai';
+import { saveRoom } from '../services/database';
 
 interface DayActionData {
   roomId: string;
@@ -90,6 +91,38 @@ export function setupSocketHandlers(io: Server) {
           } else {
             dayProgress.data.player2Capsule = data.message;
           }
+        } else if (action === 'garden') {
+          if (isPlayer1) {
+            if (!dayProgress.data.player1Garden) dayProgress.data.player1Garden = [];
+            dayProgress.data.player1Garden.push({ flower: data.flower, message: data.message });
+          } else {
+            if (!dayProgress.data.player2Garden) dayProgress.data.player2Garden = [];
+            dayProgress.data.player2Garden.push({ flower: data.flower, message: data.message });
+          }
+        } else if (action === 'quiz') {
+          if (isPlayer1) {
+            dayProgress.data.player1Quiz = data.answers;
+          } else {
+            dayProgress.data.player2Quiz = data.answers;
+          }
+        } else if (action === 'memory') {
+          if (isPlayer1) {
+            dayProgress.data.player1Memory = data.memory;
+          } else {
+            dayProgress.data.player2Memory = data.memory;
+          }
+        } else if (action === 'constellation') {
+          if (isPlayer1) {
+            dayProgress.data.player1Constellation = data.message;
+          } else {
+            dayProgress.data.player2Constellation = data.message;
+          }
+        } else if (action === 'fortune') {
+          if (isPlayer1) {
+            dayProgress.data.player1Fortune = data.message;
+          } else {
+            dayProgress.data.player2Fortune = data.message;
+          }
         }
         // Mark as completed when either player submits
         dayProgress.data.completed = true;
@@ -171,6 +204,8 @@ export function setupSocketHandlers(io: Server) {
         });
       }
       
+      // Save to database for permanent storage
+      await saveRoom(room);
       rooms.set(roomId, room);
     });
     

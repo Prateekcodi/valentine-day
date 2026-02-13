@@ -400,6 +400,226 @@ export function getCachedReflection(cacheKey: string): string | null {
   return null;
 }
 
+// ═════════════════════════════════════════════════════════════
+// LOVE LETTER GENERATION - Valentine's Day
+// ═════════════════════════════════════════════════════════════
+
+const LOVE_LETTER_PROMPT = `You are writing a romantic, personalized love letter for Valentine's Day. 
+The writer's name is: {senderName}
+The recipient's name is: {recipientName}
+
+Write a beautiful, heartfelt love letter (150-200 words) that:
+- Is romantic and poetic but not cheesy
+- Mentions specific feelings about the relationship
+- Ends with a loving sign-off from {senderName}
+- Is written as a genuine personal letter, not a template
+
+Write ONLY the letter content, no introductions or explanations.`;
+
+async function generateGeminiLoveLetter(senderName: string, recipientName: string): Promise<string | null> {
+  if (!genAI) return null;
+  
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const prompt = LOVE_LETTER_PROMPT
+      .replace('{senderName}', senderName || 'My Love')
+      .replace('{recipientName}', recipientName || 'Darling')
+      .replace(/{senderName}/g, senderName || 'My Love');
+    
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    
+    if (response && response.length > 50) {
+      return response.trim();
+    }
+  } catch (error) {
+    console.log('[LoveLetter] Gemini failed:', error instanceof Error ? error.message : 'Unknown error');
+  }
+  return null;
+}
+
+async function generateOpenRouterLoveLetter(senderName: string, recipientName: string): Promise<string | null> {
+  if (!openRouterKey) return null;
+  
+  try {
+    const prompt = LOVE_LETTER_PROMPT
+      .replace('{senderName}', senderName || 'My Love')
+      .replace('{recipientName}', recipientName || 'Darling')
+      .replace(/{senderName}/g, senderName || 'My Love');
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openRouterKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://valentine-days.vercel.app',
+        'X-Title': 'Valentine Days',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-001',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 300,
+      }),
+    });
+    
+    const data: ChatCompletionResponse = await response.json();
+    const letter = data.choices?.[0]?.message?.content;
+    
+    if (letter && letter.length > 50) {
+      return letter.trim();
+    }
+  } catch (error) {
+    console.log('[LoveLetter] OpenRouter failed:', error instanceof Error ? error.message : 'Unknown error');
+  }
+  return null;
+}
+
+async function generateGroqLoveLetter(senderName: string, recipientName: string): Promise<string | null> {
+  if (!groqKey) return null;
+  
+  try {
+    const prompt = LOVE_LETTER_PROMPT
+      .replace('{senderName}', senderName || 'My Love')
+      .replace('{recipientName}', recipientName || 'Darling')
+      .replace(/{senderName}/g, senderName || 'My Love');
+    
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 300,
+      }),
+    });
+    
+    const data: ChatCompletionResponse = await response.json();
+    const letter = data.choices?.[0]?.message?.content;
+    
+    if (letter && letter.length > 50) {
+      return letter.trim();
+    }
+  } catch (error) {
+    console.log('[LoveLetter] Groq failed:', error instanceof Error ? error.message : 'Unknown error');
+  }
+  return null;
+}
+
+async function generateMiniMaxLoveLetter(senderName: string, recipientName: string): Promise<string | null> {
+  if (!miniMaxKey || !anthropic) return null;
+  
+  try {
+    const prompt = LOVE_LETTER_PROMPT
+      .replace('{senderName}', senderName || 'My Love')
+      .replace('{recipientName}', recipientName || 'Darling')
+      .replace(/{senderName}/g, senderName || 'My Love');
+    
+    const message = await anthropic.messages.create({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    
+    const letter = message.content[0]?.type === 'text' ? message.content[0].text : null;
+    
+    if (letter && letter.length > 50) {
+      return letter.trim();
+    }
+  } catch (error) {
+    console.log('[LoveLetter] MiniMax failed:', error instanceof Error ? error.message : 'Unknown error');
+  }
+  return null;
+}
+
+function createFallbackLoveLetter(senderName: string, recipientName: string): string {
+  const sender = senderName || 'Your Love';
+  const recipient = recipientName || 'Darling';
+  
+  const templates = [
+    `My dearest ${recipient},
+
+Every sunrise reminds me of you — warm, golden, impossible to look away from. In this lifetime and every one after, I would choose you again. The way you laugh, the way your eyes light up when you're happy — these are the things I keep locked in the safest corner of my heart.
+
+You are not just my Valentine — you are my home.
+
+Forever yours,
+${sender} 💕`,
+    
+    `To ${recipient},
+
+I have searched every constellation for words worthy of you, and still the stars fall short. You are the poetry I never knew I needed, the song that plays in the quiet moments when the world goes still.
+
+If love were a universe, you would be every star in it.
+
+Always and infinitely,
+${sender} 🌟`,
+    
+    `Darling ${recipient},
+
+Some people search their whole lives for what we have — this easy, beautiful, ridiculous love. I am grateful every single day that the universe was kind enough to write us into the same story.
+
+Thank you for being you. For choosing me.
+
+Yours in every season,
+${sender} 🌹`,
+  ];
+  
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+export async function generateLoveLetter(
+  senderName: string,
+  recipientName: string
+): Promise<string> {
+  console.log(`\n${'═'.repeat(50)}`);
+  console.log(`[LoveLetter] 🤖 GENERATING AI LOVE LETTER`);
+  console.log(`From: "${senderName}" To: "${recipientName}"`);
+  console.log(`${'═'.repeat(50)}\n`);
+  
+  // Priority 1: Gemini
+  if (geminiKey) {
+    const result = await generateGeminiLoveLetter(senderName, recipientName);
+    if (result) {
+      console.log(`[LoveLetter] 🎉 Using Gemini\n`);
+      return result;
+    }
+  }
+  
+  // Priority 2: OpenRouter
+  if (openRouterKey) {
+    const result = await generateOpenRouterLoveLetter(senderName, recipientName);
+    if (result) {
+      console.log(`[LoveLetter] 🎉 Using OpenRouter\n`);
+      return result;
+    }
+  }
+  
+  // Priority 3: Groq
+  if (groqKey) {
+    const result = await generateGroqLoveLetter(senderName, recipientName);
+    if (result) {
+      console.log(`[LoveLetter] 🎉 Using Groq\n`);
+      return result;
+    }
+  }
+  
+  // Priority 4: MiniMax
+  if (miniMaxKey) {
+    const result = await generateMiniMaxLoveLetter(senderName, recipientName);
+    if (result) {
+      console.log(`[LoveLetter] 🎉 Using MiniMax\n`);
+      return result;
+    }
+  }
+  
+  // Fallback
+  console.log(`[LoveLetter] ⚠️ All APIs failed - using fallback\n`);
+  return createFallbackLoveLetter(senderName, recipientName);
+}
+
 export function cacheReflection(cacheKey: string, reflection: string): void {
   reflectionCache.set(cacheKey, { reflection, timestamp: Date.now() });
 }

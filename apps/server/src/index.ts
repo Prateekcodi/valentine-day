@@ -559,6 +559,15 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   if (day === 2) bothSubmitted = dayProgress.data.player1Message && dayProgress.data.player2Message;
   else if ([3, 5, 6].includes(day)) bothSubmitted = dayProgress.data.player1Choice && dayProgress.data.player2Choice;
   else if ([4, 7].includes(day)) bothSubmitted = dayProgress.data.player1Data && dayProgress.data.player2Data;
+  else if (day === 8) {
+    // Day 8 requires ALL activities from BOTH players
+    const p1 = dayProgress.data.player1Data || {};
+    const p2 = dayProgress.data.player2Data || {};
+    bothSubmitted = !!(p1.letter && p2.letter && p1.lantern && p2.lantern && 
+                       p1.promises && p2.promises && p1.capsule && p2.capsule &&
+                       p1.garden && p2.garden && p1.quiz && p2.quiz && 
+                       p1.constellation && p2.constellation && p1.fortune && p2.fortune);
+  }
 
   if (bothSubmitted) {
     const reflection = await generateReflection(day, dayProgress.data);

@@ -615,10 +615,50 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     playerMessage = isPlayer1 ? p1Entry : p2Entry;
     partnerMessage = isPlayer1 ? p2Entry : p1Entry;
   } else if ([4, 7].includes(day)) {
-    hasThisPlayerSubmitted = isPlayer1 ? !!dayProgress.data?.player1Data : !!dayProgress.data?.player2Data;
-    hasPartnerSubmitted = isPlayer1 ? !!dayProgress.data?.player2Data : !!dayProgress.data?.player1Data;
-    playerMessage = isPlayer1 ? JSON.stringify(dayProgress.data?.player1Data) : JSON.stringify(dayProgress.data?.player2Data);
-    partnerMessage = isPlayer1 ? JSON.stringify(dayProgress.data?.player2Data) : JSON.stringify(dayProgress.data?.player1Data);
+    const playerData = isPlayer1 ? dayProgress.data?.player1Data : dayProgress.data?.player2Data;
+    const partnerData = isPlayer1 ? dayProgress.data?.player2Data : dayProgress.data?.player1Data;
+    hasThisPlayerSubmitted = !!playerData;
+    hasPartnerSubmitted = !!partnerData;
+    
+    // For Day 4 (Teddy Day): offering, receiving, message
+    // For Day 7 (Hug Day): need, response
+    let playerOffering, playerReceiving, playerMsg, partnerOffering, partnerReceiving, partnerMsg;
+    
+    if (day === 4) {
+      playerOffering = playerData?.offering || null;
+      playerReceiving = playerData?.receiving || null;
+      playerMsg = playerData?.message || null;
+      partnerOffering = partnerData?.offering || null;
+      partnerReceiving = partnerData?.receiving || null;
+      partnerMsg = partnerData?.message || null;
+    } else {
+      // Day 7 - Hug Day
+      playerOffering = playerData?.need || null;  // Map 'need' to 'offering' for frontend compatibility
+      playerReceiving = playerData?.response || null;  // Map 'response' to 'receiving'
+      playerMsg = playerData?.message || null;
+      partnerOffering = partnerData?.need || null;
+      partnerReceiving = partnerData?.response || null;
+      partnerMsg = partnerData?.message || null;
+    }
+    
+    res.json({
+      submitted: hasThisPlayerSubmitted || false,
+      partnerSubmitted: hasPartnerSubmitted || false,
+      reflection: dayProgress.aiReflection || null,
+      completed: dayProgress.completed,
+      playerOffering,
+      playerReceiving,
+      playerMessage: playerMsg,
+      partnerOffering,
+      partnerReceiving,
+      partnerMessage: partnerMsg,
+      // Also include Day 7 specific fields
+      playerNeed: playerData?.need || null,
+      playerResponse: playerData?.response || null,
+      partnerNeed: partnerData?.need || null,
+      partnerResponse: partnerData?.response || null
+    });
+    return;
   }
 
   res.json({

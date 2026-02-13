@@ -602,8 +602,20 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
 
   // For Day 8 (Valentine's Day), return all responses
   if (day === 8) {
-    hasThisPlayerSubmitted = true; // Day 8 doesn't require both to submit
-    hasPartnerSubmitted = dayProgress.completed;
+    // Check if this player has submitted any data
+    const player1HasData = !!(dayProgress.data?.player1Letter || dayProgress.data?.player1Lantern || 
+                              dayProgress.data?.player1Promises?.length || dayProgress.data?.player1Capsule ||
+                              dayProgress.data?.player1Garden?.length || dayProgress.data?.player1Quiz ||
+                              dayProgress.data?.player1Constellation || dayProgress.data?.player1Fortune ||
+                              dayProgress.data?.player1Memory);
+    const player2HasData = !!(dayProgress.data?.player2Letter || dayProgress.data?.player2Lantern || 
+                              dayProgress.data?.player2Promises?.length || dayProgress.data?.player2Capsule ||
+                              dayProgress.data?.player2Garden?.length || dayProgress.data?.player2Quiz ||
+                              dayProgress.data?.player2Constellation || dayProgress.data?.player2Fortune ||
+                              dayProgress.data?.player2Memory);
+    
+    hasThisPlayerSubmitted = isPlayer1 ? player1HasData : player2HasData;
+    hasPartnerSubmitted = isPlayer1 ? player2HasData : player1HasData;
     
     const responses = {
       player1: {
@@ -612,6 +624,11 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
         lantern: dayProgress.data?.player1Lantern || null,
         promises: dayProgress.data?.player1Promises || [],
         capsule: dayProgress.data?.player1Capsule || null,
+        garden: dayProgress.data?.player1Garden || [],
+        quiz: dayProgress.data?.player1Quiz || null,
+        constellation: dayProgress.data?.player1Constellation || null,
+        fortune: dayProgress.data?.player1Fortune || null,
+        memory: dayProgress.data?.player1Memory || null,
       },
       player2: {
         name: room.player2?.name || 'Player 2',
@@ -619,6 +636,11 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
         lantern: dayProgress.data?.player2Lantern || null,
         promises: dayProgress.data?.player2Promises || [],
         capsule: dayProgress.data?.player2Capsule || null,
+        garden: dayProgress.data?.player2Garden || [],
+        quiz: dayProgress.data?.player2Quiz || null,
+        constellation: dayProgress.data?.player2Constellation || null,
+        fortune: dayProgress.data?.player2Fortune || null,
+        memory: dayProgress.data?.player2Memory || null,
       }
     };
     

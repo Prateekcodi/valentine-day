@@ -1614,6 +1614,88 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
 
   if (!mounted) return null;
 
+  // Show wait for partner screen when only this player has submitted
+  if (submitted && !partnerSubmitted && bothResponses) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: `radial-gradient(ellipse at 20% 20%,#1a0515 0%,${PALETTE.black} 50%,#0a0015 100%)`,
+        fontFamily: "Georgia,serif",
+        cursor: "none",
+        overflowX: "hidden",
+      }}>
+        <style>{globalStyles}</style>
+        <CursorTrail />
+        <ParticleUniverse />
+
+        <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 14px 80px" }}>
+          <div style={{ textAlign: "center", padding: "28px 0 20px" }}>
+            <div style={{ fontSize: 52, marginBottom: 10, filter: `drop-shadow(0 0 20px ${PALETTE.rose})` }}>💕</div>
+            <h1 style={{
+              fontFamily: "Georgia,serif", fontWeight: 900, fontSize: 28, letterSpacing: 3,
+              background: `linear-gradient(135deg,${PALETTE.gold},${PALETTE.blush},${PALETTE.gold})`,
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>
+              Valentine's Day 2026
+            </h1>
+          </div>
+
+          <GCard style={{ padding: 28 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 80, marginBottom: 20, animation: "floatBob 2s ease-in-out infinite" }}>⏳</div>
+              <h2 style={{ color: PALETTE.gold, fontFamily: "Georgia,serif", fontSize: 24, fontWeight: 900, marginBottom: 16 }}>
+                💝 Waiting for {partnerName || 'your partner'}...
+              </h2>
+              
+              <p style={{ color: PALETTE.champagne, fontSize: 16, lineHeight: 1.8, marginBottom: 20 }}>
+                Your love letter and activities have been submitted! ✨
+              </p>
+
+              {/* Show your submitted data */}
+              <div style={{
+                background: "rgba(224,71,107,0.1)",
+                borderRadius: 16, padding: 20, marginBottom: 20,
+                border: "1px solid rgba(224,71,107,0.3)",
+                textAlign: "left",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 24 }}>👤</span>
+                  <span style={{ color: PALETTE.blush, fontWeight: 700, fontSize: 16 }}>{myName || 'You'}</span>
+                  <span style={{ color: "rgba(46,204,113,0.8)", fontSize: 12 }}>✓ Submitted</span>
+                </div>
+                
+                {bothResponses?.player1?.letter || bothResponses?.player2?.letter ? (
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
+                    <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
+                      {(bothResponses?.player1?.letter || bothResponses?.player2?.letter || "").substring(0, 100)}...
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, fontStyle: "italic" }}>
+                When {partnerName || 'your partner'} completes their activities, you'll see each other's messages! 💕
+              </p>
+
+              <button
+                onClick={handleContinue}
+                style={{
+                  marginTop: 24, padding: "14px 32px", fontSize: 16, fontWeight: 700,
+                  background: `linear-gradient(135deg,${PALETTE.blush},${PALETTE.rose})`,
+                  border: "none", borderRadius: 30, color: "white", cursor: "pointer",
+                  boxShadow: `0 4px 20px ${PALETTE.rose}40`,
+                }}
+              >
+                Back to Room
+              </button>
+            </div>
+          </GCard>
+        </div>
+      </div>
+    );
+  }
+
   // Show both responses summary
   if (submitted && reflection && bothResponses) {
     return (

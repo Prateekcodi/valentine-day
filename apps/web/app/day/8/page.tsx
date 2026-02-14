@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { socketClient } from '@/lib/socket';
 import { SoundPlayer } from '@/components/ui/SoundPlayer';
@@ -515,16 +515,14 @@ function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
           clearInterval(t);
           setGenerating(false);
           if (!done) { setDone(true); onUnlock("letter"); }
-          // Emit socket event
+          // Save activity via HTTP POST
           if (roomId) {
             const pid = localStorage.getItem('playerId');
-            socketClient.emit('day-action', { 
-              roomId, 
-              playerId: pid, 
-              day: 8, 
-              action: 'letter', 
-              data: { message: full } 
-            });
+            fetch(API_URL + '/api/day/8/activity', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'letter', data: { message: full } })
+            }).catch(e => console.error('Letter submit failed:', e));
           }
         }
       }, 18);
@@ -539,13 +537,11 @@ function LoveLetter({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
       if (!done) { setDone(true); onUnlock("letter"); }
       if (roomId) {
         const pid = localStorage.getItem('playerId');
-        socketClient.emit('day-action', { 
-          roomId, 
-          playerId: pid, 
-          day: 8, 
-          action: 'letter', 
-          data: { message: full } 
-        });
+        fetch(API_URL + '/api/day/8/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'letter', data: { message: full } })
+        }).catch(e => console.error('Letter submit failed:', e));
       }
     }
   };
@@ -692,16 +688,14 @@ function WishLanterns({ onUnlock, roomId }: { onUnlock: (id: string) => void; ro
     setWish("");
     setReleased(true);
     onUnlock("lantern");
-    // Emit socket event
+    // Save activity via HTTP POST
     if (roomId) {
       const pid = localStorage.getItem('playerId');
-      socketClient.emit('day-action', { 
-        roomId, 
-        playerId: pid, 
-        day: 8, 
-        action: 'lantern', 
-        data: { wish: wish } 
-      });
+      fetch(API_URL + '/api/day/8/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'lantern', data: { wish } })
+      }).catch(e => console.error('Lantern submit failed:', e));
     }
     setTimeout(() => setLanterns(l => l.filter(x => x.id !== id)), 8000);
   };
@@ -778,16 +772,14 @@ function StarConstellation({ onUnlock, roomId }: { onUnlock: (id: string) => voi
     if (nc.length === HEART_STARS.length) {
       setDone(true);
       onUnlock("constellation");
-      // Emit socket event
+      // Save activity via HTTP POST
       if (roomId) {
         const pid = localStorage.getItem('playerId');
-        socketClient.emit('day-action', { 
-          roomId, 
-          playerId: pid, 
-          day: 8, 
-          action: 'constellation', 
-          data: { message: 'Connected all stars in the love constellation!' } 
-        });
+        fetch(API_URL + '/api/day/8/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'constellation', data: { message: 'Connected all stars in the love constellation!' } })
+        }).catch(e => console.error('Constellation submit failed:', e));
       }
     }
   };
@@ -886,16 +878,14 @@ function LoveGarden({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
     setTimeout(() => setStage(s => ({ ...s, [id]: 2 })), 2800);
     setTimeout(() => setStage(s => ({ ...s, [id]: 3 })), 4500);
     onUnlock("garden");
-    // Emit socket event
+    // Save activity via HTTP POST
     if (roomId) {
       const pid = localStorage.getItem('playerId');
-      socketClient.emit('day-action', { 
-        roomId, 
-        playerId: pid, 
-        day: 8, 
-        action: 'garden', 
-        data: { flower: seed.emoji, message: seed.msg } 
-      });
+      fetch(API_URL + '/api/day/8/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'garden', data: { flower: seed.emoji, message: seed.msg } })
+      }).catch(e => console.error('Garden submit failed:', e));
     }
   };
 
@@ -989,16 +979,14 @@ function FortuneCookies({ onUnlock, roomId }: { onUnlock: (id: string) => void; 
     const f = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     setFortune(f);
     if (!done) { setDone(true); onUnlock("fortune"); }
-    // Emit socket event
+    // Save activity via HTTP POST
     if (roomId) {
       const pid = localStorage.getItem('playerId');
-      socketClient.emit('day-action', { 
-        roomId, 
-        playerId: pid, 
-        day: 8, 
-        action: 'fortune', 
-        data: { message: f } 
-      });
+      fetch(API_URL + '/api/day/8/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'fortune', data: { message: f } })
+      }).catch(e => console.error('Fortune submit failed:', e));
     }
   };
 
@@ -1102,16 +1090,14 @@ function LoveLanguageQuiz({ onUnlock, roomId }: { onUnlock: (id: string) => void
         const res = ns.indexOf(max);
         setResult(res);
         onUnlock("quiz");
-        // Emit socket event
+        // Save activity via HTTP POST
         if (roomId) {
           const pid = localStorage.getItem('playerId');
-          socketClient.emit('day-action', { 
-            roomId, 
-            playerId: pid, 
-            day: 8, 
-            action: 'quiz', 
-            data: { answers: ns, result: LOVE_LANGS[res] } 
-          });
+          fetch(API_URL + '/api/day/8/activity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'quiz', data: { answers: ns, result: LOVE_LANGS[res] } })
+          }).catch(e => console.error('Quiz submit failed:', e));
         }
       } else { setQ(q => q + 1); setSel(null); }
     }, 700);
@@ -1183,16 +1169,14 @@ function PromiseStars({ onUnlock, roomId }: { onUnlock: (id: string) => void; ro
     setStars(ns);
     setPromise("");
     if (!done) { setDone(true); onUnlock("promise"); }
-    // Emit socket event
+    // Save activity via HTTP POST
     if (roomId) {
       const pid = localStorage.getItem('playerId');
-      socketClient.emit('day-action', { 
-        roomId, 
-        playerId: pid, 
-        day: 8, 
-        action: 'promise', 
-        data: { promise: promise } 
-      });
+      fetch(API_URL + '/api/day/8/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'promise', data: { promise } })
+      }).catch(e => console.error('Promise submit failed:', e));
     }
   };
 
@@ -1251,16 +1235,14 @@ function TimeCapsule({ onUnlock, roomId }: { onUnlock: (id: string) => void; roo
     if (!msg.trim()) return;
     setSealed(true);
     if (!done) { setDone(true); onUnlock("capsule"); }
-    // Emit socket event
+    // Save activity via HTTP POST
     if (roomId) {
       const pid = localStorage.getItem('playerId');
-      socketClient.emit('day-action', { 
-        roomId, 
-        playerId: pid, 
-        day: 8, 
-        action: 'capsule', 
-        data: { message: msg } 
-      });
+      fetch(API_URL + '/api/day/8/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, playerId: pid, day: 8, action: 'capsule', data: { message: msg } })
+      }).catch(e => console.error('Capsule submit failed:', e));
     }
   };
 
@@ -1990,6 +1972,24 @@ export default function Day8Page() {
     player2: { name: string; letter?: string; lantern?: string; promises?: string[]; capsule?: string; garden?: { flower: string; message: string }[]; quiz?: number[]; constellation?: string; fortune?: string };
   } | null>(null);
 
+  // Derive myResponse and theirResponse based on player names
+  const { myResponse, theirResponse } = useMemo(() => {
+    if (!bothResponses || !myName) return { myResponse: null, theirResponse: null };
+    
+    const p1 = bothResponses.player1;
+    const p2 = bothResponses.player2;
+    
+    // Check if myName matches player1 or player2
+    if (p1?.name === myName) {
+      return { myResponse: p1, theirResponse: p2 };
+    } else if (p2?.name === myName) {
+      return { myResponse: p2, theirResponse: p1 };
+    }
+    
+    // Fallback: if can't determine, show player1 as "my" and player2 as "theirs"
+    return { myResponse: p1, theirResponse: p2 };
+  }, [bothResponses, myName]);
+
   // API check and socket setup
   useEffect(() => {
     setMounted(true);
@@ -2167,6 +2167,16 @@ export default function Day8Page() {
       }
       if (typeof data.partnerProgress === 'number') {
         setPartnerProgress(data.partnerProgress);
+      }
+      // Restore unlocked activities from server
+      if (data.myActivities?.length > 0) {
+        setUnlocked(prev => {
+          const combined = ['first', ...prev, ...data.myActivities];
+          return Array.from(new Set(combined));
+        });
+      }
+      if (data.partnerActivities?.length > 0) {
+        setPartnerUnlocked(data.partnerActivities);
       }
       if (data.submitted) {
         setSubmitted(true);
@@ -2473,11 +2483,11 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
                   <span style={{ color: "rgba(46,204,113,0.8)", fontSize: 12 }}>✓ Submitted</span>
                 </div>
                 
-                {bothResponses?.player1?.letter || bothResponses?.player2?.letter ? (
+                {myResponse?.letter ? (
                   <div style={{ marginBottom: 8 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
                     <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                      {(bothResponses?.player1?.letter || bothResponses?.player2?.letter || "").substring(0, 100)}...
+                      {(myResponse?.letter || "").substring(0, 100)}...
                     </p>
                   </div>
                 ) : null}
@@ -2566,31 +2576,31 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
                 </div>
                 
                 {/* Love Letter */}
-                {(bothResponses?.player1?.letter || bothResponses?.player2?.letter) && (
+                {myResponse?.letter && (
                   <div style={{ marginBottom: 12 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
                     <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                      {(bothResponses?.player1?.letter || bothResponses?.player2?.letter || "").substring(0, 150)}...
+                      {(myResponse?.letter || "").substring(0, 150)}...
                     </p>
                   </div>
                 )}
                 
                 {/* Lantern Wish */}
-                {(bothResponses?.player1?.lantern || bothResponses?.player2?.lantern) && (
+                {myResponse?.lantern && (
                   <div style={{ marginBottom: 12 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>🏮 Wish Lantern:</span>
                     <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                      {bothResponses?.player1?.lantern || bothResponses?.player2?.lantern}
+                      {myResponse?.lantern}
                     </p>
                   </div>
                 )}
                 
                 {/* Promises */}
-                {bothResponses?.player1?.promises && bothResponses.player1.promises.length > 0 && (
+                {myResponse?.promises && myResponse.promises.length > 0 && (
                   <div style={{ marginBottom: 12 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Promises:</span>
                     <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
-                      {bothResponses.player1.promises?.slice(0, 3).map((p, i) => (
+                      {myResponse.promises?.slice(0, 3).map((p, i) => (
                         <li key={i}>{p}</li>
                       ))}
                     </ul>
@@ -2598,11 +2608,11 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
                 )}
                 
                 {/* Capsule */}
-                {(bothResponses?.player1?.capsule || bothResponses?.player2?.capsule) && (
+                {myResponse?.capsule && (
                   <div style={{ marginBottom: 12 }}>
                     <span style={{ color: PALETTE.gold, fontSize: 12 }}>📦 Time Capsule:</span>
                     <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                      {(bothResponses?.player1?.capsule || bothResponses?.player2?.capsule || "").substring(0, 100)}...
+                      {(myResponse?.capsule || "").substring(0, 100)}...
                     </p>
                   </div>
                 )}
@@ -2623,31 +2633,31 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
                   </div>
                   
                   {/* Love Letter */}
-                  {(bothResponses?.player2?.letter || bothResponses?.player1?.letter) && (
+                  {theirResponse?.letter && (
                     <div style={{ marginBottom: 12 }}>
                       <span style={{ color: PALETTE.gold, fontSize: 12 }}>💌 Love Letter:</span>
                       <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                        {(bothResponses?.player2?.letter || bothResponses?.player1?.letter || "").substring(0, 150)}...
+                        {(theirResponse?.letter || "").substring(0, 150)}...
                       </p>
                     </div>
                   )}
                   
                   {/* Lantern Wish */}
-                  {(bothResponses?.player2?.lantern || bothResponses?.player1?.lantern) && (
+                  {theirResponse?.lantern && (
                     <div style={{ marginBottom: 12 }}>
                       <span style={{ color: PALETTE.gold, fontSize: 12 }}>🏮 Wish Lantern:</span>
                       <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                        {bothResponses?.player2?.lantern || bothResponses?.player1?.lantern}
+                        {theirResponse?.lantern}
                       </p>
                     </div>
                   )}
                   
                   {/* Promises */}
-                  {bothResponses?.player2?.promises && bothResponses.player2.promises.length > 0 && (
+                  {theirResponse?.promises && theirResponse.promises.length > 0 && (
                     <div style={{ marginBottom: 12 }}>
                       <span style={{ color: PALETTE.gold, fontSize: 12 }}>⭐ Their promises:</span>
                       <ul style={{ color: PALETTE.champagne, fontSize: 13, marginTop: 6, paddingLeft: 16 }}>
-                        {bothResponses.player2.promises?.slice(0, 3).map((p, i) => (
+                        {theirResponse.promises?.slice(0, 3).map((p, i) => (
                           <li key={i}>{p}</li>
                         ))}
                       </ul>
@@ -2655,11 +2665,11 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
                   )}
                   
                   {/* Capsule */}
-                  {(bothResponses?.player2?.capsule || bothResponses?.player1?.capsule) && (
+                  {theirResponse?.capsule && (
                     <div style={{ marginBottom: 12 }}>
                       <span style={{ color: PALETTE.gold, fontSize: 12 }}>📦 Their Time Capsule:</span>
                       <p style={{ color: PALETTE.champagne, fontSize: 14, lineHeight: 1.7, fontStyle: "italic", marginTop: 4 }}>
-                        {(bothResponses?.player2?.capsule || bothResponses?.player1?.capsule || "").substring(0, 100)}...
+                        {(theirResponse?.capsule || "").substring(0, 100)}...
                       </p>
                     </div>
                   )}

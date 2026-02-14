@@ -313,7 +313,8 @@ STRICT RULES:
     const reflection = await generateAIReflection(prompt, player1Answer, player2Answer, day);
     
     if (reflection && reflection.length > 50) {
-      const cleaned = cleanMarkdown(reflection);
+      // Day 8 Hinglish needs formatting preserved — short lines, emojis, bold, newlines are intentional
+      const cleaned = day === 8 ? reflection.trim() : cleanMarkdown(reflection);
       console.log(`[Day ${day}] ✨ AI Reflection generated (${cleaned.length} chars)`);
       return cleaned;
     } else {
@@ -1042,6 +1043,24 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     // Only show full responses when BOTH have submitted
     const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
     
+    // Compute badges for progress tracking
+    const computeBadges = (prefix: string) => {
+      const badges: string[] = [];
+      const d = dayProgress.data || {};
+      if (d[`${prefix}Letter`])                          badges.push('letter');
+      if (d[`${prefix}Lantern`])                         badges.push('lantern');
+      if (d[`${prefix}Promises`]?.length > 0)            badges.push('promise');
+      if (d[`${prefix}Capsule`])                         badges.push('capsule');
+      if (d[`${prefix}Garden`]?.length > 0)              badges.push('garden');
+      if (d[`${prefix}Quiz`])                            badges.push('quiz');
+      if (d[`${prefix}Constellation`])                   badges.push('constellation');
+      if (d[`${prefix}Fortune`])                         badges.push('fortune');
+      if (d[`${prefix}Achievements`]?.includes('secret')) badges.push('secret');
+      return badges;
+    };
+    const myActivities = computeBadges(isPlayer1 ? 'player1' : 'player2');
+    const partnerActivities = computeBadges(isPlayer1 ? 'player2' : 'player1');
+    
     res.json({
       submitted: hasThisPlayerSubmitted || false,
       partnerSubmitted: hasPartnerSubmitted || false,
@@ -1049,6 +1068,8 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       completed: bothSubmitted ? dayProgress.completed : false,
       playerProgress,
       partnerProgress,
+      myActivities,
+      partnerActivities,
       // Full responses only when both submitted
       responses: bothSubmitted ? {
         player1: {
@@ -1197,3 +1218,4 @@ async function startServer() {
 }
 
 startServer();
+ 

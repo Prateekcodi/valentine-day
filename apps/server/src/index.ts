@@ -1003,10 +1003,13 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     const p2Fortune = dayProgress.data?.player2Fortune || null;
     const p1Achievements = dayProgress.data?.player1Achievements || [];
     const p2Achievements = dayProgress.data?.player2Achievements || [];
+    const p1Scrapbook = dayProgress.data?.player1Memory || false;
+    const p2Scrapbook = dayProgress.data?.player2Memory || false;
     
-    // Calculate player progress (out of 9 activities)
+    // Calculate player progress (out of 10 activities)
     const playerProgress = isPlayer1 ? (
       (!!p1Letter ? 1 : 0) +
+      (!!p1Scrapbook ? 1 : 0) +
       (!!p1Lantern ? 1 : 0) +
       (p1Promises.length > 0 ? 1 : 0) +
       (!!p1Capsule ? 1 : 0) +
@@ -1017,6 +1020,7 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       (p1Achievements.includes('secret') ? 1 : 0)
     ) : (
       (!!p2Letter ? 1 : 0) +
+      (!!p2Scrapbook ? 1 : 0) +
       (!!p2Lantern ? 1 : 0) +
       (p2Promises.length > 0 ? 1 : 0) +
       (!!p2Capsule ? 1 : 0) +
@@ -1028,6 +1032,7 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     );
     const partnerProgress = isPlayer1 ? (
       (!!p2Letter ? 1 : 0) +
+      (!!p2Scrapbook ? 1 : 0) +
       (!!p2Lantern ? 1 : 0) +
       (p2Promises.length > 0 ? 1 : 0) +
       (!!p2Capsule ? 1 : 0) +
@@ -1038,6 +1043,7 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       (p2Achievements.includes('secret') ? 1 : 0)
     ) : (
       (!!p1Letter ? 1 : 0) +
+      (!!p1Scrapbook ? 1 : 0) +
       (!!p1Lantern ? 1 : 0) +
       (p1Promises.length > 0 ? 1 : 0) +
       (!!p1Capsule ? 1 : 0) +

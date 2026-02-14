@@ -32,19 +32,21 @@ const PALETTE = {
 const ALL_BADGES = [
   { id: "first", icon: "🌹", name: "First Bloom", desc: "Started your journey" },
   { id: "letter", icon: "💌", name: "Love Poet", desc: "Generated a love letter" },
+  { id: "scrapbook", icon: "📸", name: "Memory Keeper", desc: "Viewed the memory scrapbook" },
   { id: "lantern", icon: "🏮", name: "Wish Maker", desc: "Released a wish lantern" },
   { id: "constellation", icon: "⭐", name: "Star Gazer", desc: "Found the love constellation" },
-  { id: "capsule", icon: "📦", name: "Time Keeper", desc: "Sealed a time capsule" },
   { id: "garden", icon: "🌺", name: "Love Gardener", desc: "Grew your love garden" },
   { id: "fortune", icon: "🥠", name: "Fortune Seeker", desc: "Opened a fortune cookie" },
   { id: "quiz", icon: "💝", name: "Love Expert", desc: "Completed the love language quiz" },
   { id: "promise", icon: "💎", name: "Promise Keeper", desc: "Made a star promise" },
+  { id: "capsule", icon: "📦", name: "Time Keeper", desc: "Sealed a time capsule" },
   { id: "secret", icon: "🔮", name: "Secret Finder", desc: "Found a hidden Easter egg" },
 ];
 
 // Maps activity badge IDs → which section tab they live in
 const ACTIVITIES = [
   { id: 'letter',          icon: '💌', name: 'Love Letter',   section: 'letter' },
+  { id: 'scrapbook',      icon: '📸', name: 'Memory Book',  section: 'scrapbook' },
   { id: 'lantern',         icon: '🏮', name: 'Wish Lantern',  section: 'lanterns' },
   { id: 'constellation',   icon: '⭐', name: 'Star Map',      section: 'constellation' },
   { id: 'garden',          icon: '🌺', name: 'Love Garden',   section: 'garden' },
@@ -58,6 +60,7 @@ const ACTIVITIES = [
 // Maps socket action name → badge ID
 const ACTION_TO_BADGE: Record<string, string> = {
   letter: 'letter',
+  scrapbook: 'scrapbook',
   lantern: 'lantern',
   constellation: 'constellation',
   garden: 'garden',

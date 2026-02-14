@@ -2043,19 +2043,19 @@ export default function Day8Page() {
 
         // Update partner data based on action
         if (data.action === 'letter') {
-          setPartnerData(prev => ({ ...prev, letter: data.data.message }));
+          setPartnerData(prev => ({ ...prev, letter: data.data?.message || '' }));
         } else if (data.action === 'lantern') {
-          setPartnerData(prev => ({ ...prev, lantern: data.data.wish }));
+          setPartnerData(prev => ({ ...prev, lantern: data.data?.wish || '' }));
         } else if (data.action === 'promise') {
-          setPartnerData(prev => ({ ...prev, promises: [...(prev.promises || []), data.data.promise] }));
+          setPartnerData(prev => ({ ...prev, promises: [...(prev.promises || []), data.data?.promise || ''] }));
         } else if (data.action === 'garden') {
-          setPartnerData(prev => ({ ...prev, garden: [...(prev.garden || []), { flower: data.data.flower, message: data.data.message }] }));
+          setPartnerData(prev => ({ ...prev, garden: [...(prev.garden || []), { flower: data.data?.flower || '🌺', message: data.data?.message || '' }] }));
         } else if (data.action === 'quiz') {
-          setPartnerData(prev => ({ ...prev, quizAnswers: data.data.answers }));
+          setPartnerData(prev => ({ ...prev, quizAnswers: data.data?.answers || {} }));
         } else if (data.action === 'capsule') {
-          setPartnerData(prev => ({ ...prev, capsule: data.data.message }));
+          setPartnerData(prev => ({ ...prev, capsule: data.data?.message || '' }));
         } else if (data.action === 'memory') {
-          setPartnerData(prev => ({ ...prev, memory: data.data.memory }));
+          setPartnerData(prev => ({ ...prev, memory: data.data?.memory || null }));
         } else if (data.action === 'submit-data') {
           // Partner submitted their data - reload to check status
           checkExisting();
@@ -2292,7 +2292,7 @@ ${p1.promises?.length ? p1.promises.map((p, i) => `${i + 1}. ${p}`).join('\n') :
 📦 Time Capsule:
 ${p1.capsule || 'Not shared'}
 
-${p1.garden?.length ? `🌺 Love Garden:\n${p1.garden.map(g => `- ${g.flower}: ${g.message}`).join('\n')}` : ''}
+${p1.garden?.length ? `🌺 Love Garden:\n${p1.garden.map(g => `- ${g.flower || '🌺'}: ${g.message || ''}`).join('\n')}` : ''}
 
 ${p1.quiz ? `💝 Love Language Quiz: Completed (scores: ${p1.quiz.join(', ')})` : ''}
 
@@ -2317,7 +2317,7 @@ ${p2.promises?.length ? p2.promises.map((p, i) => `${i + 1}. ${p}`).join('\n') :
 📦 Time Capsule:
 ${p2.capsule || 'Not shared'}
 
-${p2.garden?.length ? `🌺 Love Garden:\n${p2.garden.map(g => `- ${g.flower}: ${g.message}`).join('\n')}` : ''}
+${p2.garden?.length ? `🌺 Love Garden:\n${p2.garden.map(g => `- ${g.flower || '🌺'}: ${g.message || ''}`).join('\n')}` : ''}
 
 ${p2.quiz ? `💝 Love Language Quiz: Completed (scores: ${p2.quiz.join(', ')})` : ''}
 

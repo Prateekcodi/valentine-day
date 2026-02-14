@@ -1352,6 +1352,7 @@ export default function Day8Page() {
   const [loading, setLoading] = useState(false);
   const [reflection, setReflection] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Valentine features state
   const [opened, setOpened] = useState(false);
@@ -1553,6 +1554,7 @@ export default function Day8Page() {
         }
       }
     } catch (e) { console.error('Check failed:', e); }
+    finally { setInitialLoading(false); }
   };
   
   const fetchRoomInfo = async function () {
@@ -1700,7 +1702,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
       // Submit achievements to server
       const pid = localStorage.getItem('playerId');
       if (pid && roomId) {
-        fetch(API_URL + '/api/day/8/submit', {
+        fetch(API_URL + '/api/day/8/activity', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -1737,6 +1739,21 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
   };
 
   if (!mounted) return null;
+
+  // Block render until we know the real state from server
+  if (initialLoading) return (
+    <div style={{
+      minHeight: "100vh", background: PALETTE.black,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexDirection: "column", gap: 16,
+    }}>
+      <div style={{ fontSize: 60, animation: "floatBob 1.5s ease-in-out infinite" }}>💕</div>
+      <div style={{ color: "rgba(249,168,196,0.6)", fontFamily: "Georgia,serif", fontSize: 16 }}>
+        Loading your love story...
+      </div>
+      <style>{`@keyframes floatBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`}</style>
+    </div>
+  );
 
   // Show wait for partner screen when only this player has submitted
   if (submitted && !partnerSubmitted) {

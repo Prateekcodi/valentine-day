@@ -583,7 +583,7 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
   else if ([3, 5, 6].includes(day)) bothSubmitted = dayProgress.data.player1Choice && dayProgress.data.player2Choice;
   else if ([4, 7].includes(day)) bothSubmitted = dayProgress.data.player1Data && dayProgress.data.player2Data;
   else if (day === 8) {
-    // Day 8 requires ALL activities from BOTH players (using flat field names)
+    // Day 8 requires ALL activities from BOTH players (using flat field names) - including secret badge
     const p1Done = !!(
       dayProgress.data?.player1Letter &&
       dayProgress.data?.player1Lantern &&
@@ -592,7 +592,8 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
       dayProgress.data?.player1Garden?.length > 0 &&
       dayProgress.data?.player1Quiz &&
       dayProgress.data?.player1Constellation &&
-      dayProgress.data?.player1Fortune
+      dayProgress.data?.player1Fortune &&
+      dayProgress.data?.player1Achievements?.includes('secret')
     );
     const p2Done = !!(
       dayProgress.data?.player2Letter &&
@@ -602,7 +603,8 @@ app.post('/api/day/:day/submit', async (req: Request, res: Response) => {
       dayProgress.data?.player2Garden?.length > 0 &&
       dayProgress.data?.player2Quiz &&
       dayProgress.data?.player2Constellation &&
-      dayProgress.data?.player2Fortune
+      dayProgress.data?.player2Fortune &&
+      dayProgress.data?.player2Achievements?.includes('secret')
     );
     bothSubmitted = p1Done && p2Done;
   }
@@ -748,7 +750,7 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
 
   // For Day 8 (Valentine's Day), return all responses only when BOTH are fully complete
   if (day === 8) {
-    // Check if this player has completed ALL activities (AND logic)
+    // Check if this player has completed ALL activities (AND logic) - including secret badge
     const isCompleteP1 = !!(
       dayProgress.data?.player1Letter &&
       dayProgress.data?.player1Lantern &&
@@ -757,7 +759,8 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       dayProgress.data?.player1Garden?.length > 0 &&
       dayProgress.data?.player1Quiz &&
       dayProgress.data?.player1Constellation &&
-      dayProgress.data?.player1Fortune
+      dayProgress.data?.player1Fortune &&
+      dayProgress.data?.player1Achievements?.includes('secret')
     );
     const isCompleteP2 = !!(
       dayProgress.data?.player2Letter &&
@@ -767,7 +770,8 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       dayProgress.data?.player2Garden?.length > 0 &&
       dayProgress.data?.player2Quiz &&
       dayProgress.data?.player2Constellation &&
-      dayProgress.data?.player2Fortune
+      dayProgress.data?.player2Fortune &&
+      dayProgress.data?.player2Achievements?.includes('secret')
     );
     
     hasThisPlayerSubmitted = isPlayer1 ? isCompleteP1 : isCompleteP2;

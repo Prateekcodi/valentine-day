@@ -899,6 +899,52 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     const p2Constellation = dayProgress.data?.player2Constellation || null;
     const p1Fortune = dayProgress.data?.player1Fortune || null;
     const p2Fortune = dayProgress.data?.player2Fortune || null;
+    const p1Achievements = dayProgress.data?.player1Achievements || [];
+    const p2Achievements = dayProgress.data?.player2Achievements || [];
+    
+    // Calculate player progress (out of 9 activities)
+    const playerProgress = isPlayer1 ? (
+      (!!p1Letter ? 1 : 0) +
+      (!!p1Lantern ? 1 : 0) +
+      (p1Promises.length > 0 ? 1 : 0) +
+      (!!p1Capsule ? 1 : 0) +
+      (p1Garden.length > 0 ? 1 : 0) +
+      (!!p1Quiz ? 1 : 0) +
+      (!!p1Constellation ? 1 : 0) +
+      (!!p1Fortune ? 1 : 0) +
+      (p1Achievements.includes('secret') ? 1 : 0)
+    ) : (
+      (!!p2Letter ? 1 : 0) +
+      (!!p2Lantern ? 1 : 0) +
+      (p2Promises.length > 0 ? 1 : 0) +
+      (!!p2Capsule ? 1 : 0) +
+      (p2Garden.length > 0 ? 1 : 0) +
+      (!!p2Quiz ? 1 : 0) +
+      (!!p2Constellation ? 1 : 0) +
+      (!!p2Fortune ? 1 : 0) +
+      (p2Achievements.includes('secret') ? 1 : 0)
+    );
+    const partnerProgress = isPlayer1 ? (
+      (!!p2Letter ? 1 : 0) +
+      (!!p2Lantern ? 1 : 0) +
+      (p2Promises.length > 0 ? 1 : 0) +
+      (!!p2Capsule ? 1 : 0) +
+      (p2Garden.length > 0 ? 1 : 0) +
+      (!!p2Quiz ? 1 : 0) +
+      (!!p2Constellation ? 1 : 0) +
+      (!!p2Fortune ? 1 : 0) +
+      (p2Achievements.includes('secret') ? 1 : 0)
+    ) : (
+      (!!p1Letter ? 1 : 0) +
+      (!!p1Lantern ? 1 : 0) +
+      (p1Promises.length > 0 ? 1 : 0) +
+      (!!p1Capsule ? 1 : 0) +
+      (p1Garden.length > 0 ? 1 : 0) +
+      (!!p1Quiz ? 1 : 0) +
+      (!!p1Constellation ? 1 : 0) +
+      (!!p1Fortune ? 1 : 0) +
+      (p1Achievements.includes('secret') ? 1 : 0)
+    );
     
     // Only show full responses when BOTH have submitted
     const bothSubmitted = hasThisPlayerSubmitted && hasPartnerSubmitted;
@@ -908,6 +954,8 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       partnerSubmitted: hasPartnerSubmitted || false,
       reflection: bothSubmitted ? dayProgress.aiReflection : null,
       completed: bothSubmitted ? dayProgress.completed : false,
+      playerProgress,
+      partnerProgress,
       // Full responses only when both submitted
       responses: bothSubmitted ? {
         player1: {

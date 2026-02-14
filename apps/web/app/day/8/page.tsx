@@ -42,6 +42,45 @@ const ALL_BADGES = [
   { id: "secret", icon: "🔮", name: "Secret Finder", desc: "Found a hidden Easter egg" },
 ];
 
+// Maps activity badge IDs → which section tab they live in
+const ACTIVITIES = [
+  { id: 'letter',          icon: '💌', name: 'Love Letter',   section: 'letter' },
+  { id: 'lantern',         icon: '🏮', name: 'Wish Lantern',  section: 'lanterns' },
+  { id: 'constellation',   icon: '⭐', name: 'Star Map',      section: 'constellation' },
+  { id: 'garden',          icon: '🌺', name: 'Love Garden',   section: 'garden' },
+  { id: 'fortune',         icon: '🥠', name: 'Fortune Cookie',section: 'fortune' },
+  { id: 'quiz',            icon: '💝', name: 'Love Quiz',     section: 'quiz' },
+  { id: 'promise',         icon: '💎', name: 'Star Promise',  section: 'promises' },
+  { id: 'capsule',         icon: '📦', name: 'Time Capsule',  section: 'capsule' },
+  { id: 'secret',          icon: '🔮', name: 'Secret Easter Egg', section: 'achievements' },
+];
+
+// Maps socket action name → badge ID
+const ACTION_TO_BADGE: Record<string, string> = {
+  letter: 'letter',
+  lantern: 'lantern',
+  constellation: 'constellation',
+  garden: 'garden',
+  fortune: 'fortune',
+  quiz: 'quiz',
+  promise: 'promise',
+  capsule: 'capsule',
+};
+
+// Maps section tab ID → display name
+const SECTION_LABELS: Record<string, string> = {
+  letter: 'Writing a love letter ✍️',
+  scrapbook: 'Flipping through memories 📸',
+  lanterns: 'Releasing a wish 🏮',
+  constellation: 'Connecting the stars ⭐',
+  garden: 'Growing the garden 🌺',
+  fortune: 'Cracking a fortune 🥠',
+  quiz: 'Taking the love quiz 💝',
+  promises: 'Making a promise 💎',
+  capsule: 'Sealing the capsule 📦',
+  achievements: 'Hunting for secrets 🔮',
+};
+
 // ═══════════════════════════════════════════════════════════
 // 01. CURSOR TRAIL
 // ═══════════════════════════════════════════════════════════
@@ -1341,6 +1380,223 @@ const SECTIONS = [
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════
+// DUAL PROGRESS PANEL
+// ═══════════════════════════════════════════════════════════
+function DualProgressPanel({
+  myName, partnerName,
+  myUnlocked, partnerUnlocked,
+  mySection, partnerSection,
+  onSectionClick,
+}: {
+  myName: string;
+  partnerName: string;
+  myUnlocked: string[];
+  partnerUnlocked: string[];
+  mySection: string;
+  partnerSection: string;
+  onSectionClick: (section: string) => void;
+}) {
+  const myDone = ACTIVITIES.filter(a => myUnlocked.includes(a.id));
+  const partnerDone = ACTIVITIES.filter(a => partnerUnlocked.includes(a.id));
+  const myLeft = ACTIVITIES.length - myDone.length;
+  const partnerLeft = ACTIVITIES.length - partnerDone.length;
+  const myPct = Math.round((myDone.length / ACTIVITIES.length) * 100);
+  const partnerPct = Math.round((partnerDone.length / ACTIVITIES.length) * 100);
+
+  const myCurrentActivity = ACTIVITIES.find(a => a.section === mySection);
+  const partnerCurrentActivity = ACTIVITIES.find(a => a.section === partnerSection);
+
+  return (
+    <div style={{
+      background: "rgba(12,3,24,0.85)",
+      backdropFilter: "blur(24px)",
+      borderRadius: 24,
+      border: "1px solid rgba(224,71,107,0.25)",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+      padding: "20px 20px 16px",
+      marginBottom: 20,
+    }}>
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: "rgba(249,168,196,0.6)", fontFamily: "Georgia,serif", fontStyle: "italic" }}>
+          💕 Your Journey Together
+        </div>
+      </div>
+
+      {/* Two player columns */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {[
+          { name: myName || 'You', done: myDone, left: myLeft, pct: myPct, currentSection: mySection, isMe: true },
+          { name: partnerName || 'Partner', done: partnerDone, left: partnerLeft, pct: partnerPct, currentSection: partnerSection, isMe: false },
+        ].map((player) => (
+          <div key={player.name} style={{
+            background: player.isMe
+              ? "rgba(224,71,107,0.1)"
+              : "rgba(168,85,247,0.1)",
+            borderRadius: 16,
+            border: `1px solid ${player.isMe ? "rgba(224,71,107,0.35)" : "rgba(168,85,247,0.35)"}`,
+            padding: "14px 12px",
+          }}>
+            {/* Name + count */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{
+                color: player.isMe ? PALETTE.blush : "#c084fc",
+                fontWeight: 700, fontSize: 14, fontFamily: "Georgia,serif",
+              }}>
+                {player.isMe ? '👤' : '💕'} {player.name}
+              </div>
+              <div style={{
+                background: player.left === 0
+                  ? "rgba(74,222,128,0.2)"
+                  : "rgba(255,255,255,0.08)",
+                border: `1px solid ${player.left === 0 ? "rgba(74,222,128,0.5)" : "rgba(255,255,255,0.15)"}`,
+                borderRadius: 20,
+                padding: "2px 8px",
+                fontSize: 11,
+                color: player.left === 0 ? "#4ade80" : "rgba(255,255,255,0.5)",
+                fontWeight: 700,
+              }}>
+                {player.left === 0 ? '✓ Done!' : `${player.left} left`}
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div style={{
+              height: 6, borderRadius: 3,
+              background: "rgba(255,255,255,0.08)",
+              marginBottom: 10, overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${player.pct}%`,
+                borderRadius: 3,
+                background: player.isMe
+                  ? `linear-gradient(90deg, ${PALETTE.crimson}, ${PALETTE.rose})`
+                  : "linear-gradient(90deg, #7c3aed, #c084fc)",
+                transition: "width 0.6s cubic-bezier(0.175,0.885,0.32,1.275)",
+                boxShadow: player.isMe
+                  ? `0 0 8px ${PALETTE.rose}88`
+                  : "0 0 8px #a855f788",
+              }} />
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 12, textAlign: "right" }}>
+              {player.pct}% complete
+            </div>
+
+            {/* Activity grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 5, marginBottom: 10 }}>
+              {ACTIVITIES.map(a => {
+                const done = player.done.some(d => d.id === a.id);
+                const isCurrent = player.currentSection === a.section;
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => player.isMe && onSectionClick(a.section)}
+                    title={a.name}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      padding: "6px 4px",
+                      borderRadius: 10,
+                      background: done
+                        ? (player.isMe ? "rgba(224,71,107,0.2)" : "rgba(168,85,247,0.2)")
+                        : isCurrent
+                          ? "rgba(212,175,55,0.15)"
+                          : "rgba(255,255,255,0.03)",
+                      border: done
+                        ? `1px solid ${player.isMe ? "rgba(224,71,107,0.5)" : "rgba(168,85,247,0.5)"}`
+                        : isCurrent
+                          ? "1px solid rgba(212,175,55,0.5)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      cursor: player.isMe ? "pointer" : "default",
+                      transition: "all 0.25s",
+                      position: "relative",
+                      filter: (!done && !isCurrent) ? "grayscale(0.6) opacity(0.5)" : "none",
+                    }}
+                  >
+                    <div style={{ fontSize: 16 }}>{a.icon}</div>
+                    {done && (
+                      <div style={{
+                        position: "absolute", top: 2, right: 3,
+                        fontSize: 8, color: player.isMe ? PALETTE.rose : "#c084fc",
+                        fontWeight: 900,
+                      }}>✓</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Currently doing */}
+            <div style={{
+              background: "rgba(0,0,0,0.3)",
+              borderRadius: 10, padding: "7px 10px",
+              minHeight: 32, display: "flex", alignItems: "center", gap: 6,
+            }}>
+              {player.currentSection ? (
+                <>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: player.isMe ? PALETTE.rose : "#c084fc",
+                    flexShrink: 0,
+                  }} />
+                  <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, fontStyle: "italic" }}>
+                    {SECTION_LABELS[player.currentSection] || `On ${player.currentSection}`}
+                  </span>
+                </>
+              ) : (
+                <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 11 }}>
+                  {player.isMe ? 'Start exploring 💕' : 'Waiting for activity...'}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Both done celebration */}
+      {myLeft === 0 && partnerLeft === 0 && (
+        <div style={{
+          marginTop: 14, textAlign: "center", padding: "12px",
+          background: "rgba(212,175,55,0.1)",
+          borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)",
+        }}>
+          <span style={{ color: PALETTE.gold, fontWeight: 700, fontSize: 13 }}>
+            🎉 Both of you have completed everything! Hit the button below 💕
+          </span>
+        </div>
+      )}
+
+      {/* One done, other not */}
+      {myLeft === 0 && partnerLeft > 0 && (
+        <div style={{
+          marginTop: 14, textAlign: "center", padding: "10px",
+          background: "rgba(224,71,107,0.08)",
+          borderRadius: 14, border: "1px dashed rgba(224,71,107,0.3)",
+        }}>
+          <span style={{ color: PALETTE.blush, fontSize: 12 }}>
+            ✨ You're done! Waiting for {partnerName || 'your partner'} to finish {partnerLeft} more task{partnerLeft > 1 ? 's' : ''}...
+          </span>
+        </div>
+      )}
+
+      {myLeft > 0 && partnerLeft === 0 && (
+        <div style={{
+          marginTop: 14, textAlign: "center", padding: "10px",
+          background: "rgba(168,85,247,0.08)",
+          borderRadius: 14, border: "1px dashed rgba(168,85,247,0.3)",
+        }}>
+          <span style={{ color: "#c084fc", fontSize: 12 }}>
+            💕 {partnerName || 'Partner'} is done! You have {myLeft} more task{myLeft > 1 ? 's' : ''} to go...
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 export default function Day8Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -1349,8 +1605,13 @@ export default function Day8Page() {
 
   const [submitted, setSubmitted] = useState(false);
   const [partnerSubmitted, setPartnerSubmitted] = useState(false);
+  const [playerProgress, setPlayerProgress] = useState(0);
+  const [partnerProgress, setPartnerProgress] = useState(0);
+  const [partnerUnlocked, setPartnerUnlocked] = useState<string[]>([]);
+  const [partnerCurrentSection, setPartnerCurrentSection] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [reflection, setReflection] = useState<string | null>(null);
+  const reflectionRef = useRef<string | null>(null); // Track reflection for stale-closure-free polling
   const [mounted, setMounted] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -1358,6 +1619,17 @@ export default function Day8Page() {
   const [opened, setOpened] = useState(false);
   const [romanticSound, setRomanticSound] = useState<string | null>(null);
   const [section, setSection] = useState("letter");
+  
+  // Helper to switch section and broadcast to partner
+  const switchSection = useCallback((newSection: string) => {
+    setSection(newSection);
+    // Broadcast to partner what I'm currently viewing
+    const pid = localStorage.getItem('playerId');
+    if (roomId && pid) {
+      socketClient.emit('viewing-section', { roomId, playerId: pid, section: newSection });
+    }
+  }, [roomId]);
+  
   const [unlocked, setUnlocked] = useState<string[]>(["first"]);
   const [toastBadge, setToastBadge] = useState<typeof ALL_BADGES[0] | null>(null);
   const [petalRain, setPetalRain] = useState(false);
@@ -1408,45 +1680,65 @@ export default function Day8Page() {
     if (roomId) {
       socket.emit('join-room', { roomId, playerId: pid });
       
-      // Listen for partner actions
+      // Listen for partner actions - merged single handler
       socket.on('partner-acted', (data: { playerId: string; day: number; action: string; data: any }) => {
-        if (data.day === 8) {
-          setIsPartnerActive(true);
-          setTimeout(() => setIsPartnerActive(false), 3000);
-          
-          // Update partner data based on action
-          if (data.action === 'letter') {
-            setPartnerData(prev => ({ ...prev, letter: data.data.message }));
-          } else if (data.action === 'lantern') {
-            setPartnerData(prev => ({ ...prev, lantern: data.data.wish }));
-          } else if (data.action === 'promise') {
-            setPartnerData(prev => ({ ...prev, promises: [...(prev.promises || []), data.data.promise] }));
-          } else if (data.action === 'garden') {
-            setPartnerData(prev => ({ ...prev, garden: [...(prev.garden || []), { flower: data.data.flower, message: data.data.message }] }));
-          } else if (data.action === 'quiz') {
-            setPartnerData(prev => ({ ...prev, quizAnswers: data.data.answers }));
-          } else if (data.action === 'capsule') {
-            setPartnerData(prev => ({ ...prev, capsule: data.data.message }));
-          } else if (data.action === 'memory') {
-            setPartnerData(prev => ({ ...prev, memory: data.data.memory }));
-          }
+        if (data.day !== 8) return;
+
+        // Show partner active pulse
+        setIsPartnerActive(true);
+        setTimeout(() => setIsPartnerActive(false), 3000);
+
+        // Map action → badge and mark partner's progress
+        const badgeId = ACTION_TO_BADGE[data.action];
+        if (badgeId) {
+          setPartnerUnlocked(prev =>
+            prev.includes(badgeId) ? prev : [...prev, badgeId]
+          );
         }
+
+        // If partner unlock secret via achievements action
+        if (data.action === 'achievements' && data.data?.badges?.includes('secret')) {
+          setPartnerUnlocked(prev =>
+            prev.includes('secret') ? prev : [...prev, 'secret']
+          );
+        }
+
+        // Update partner data based on action
+        if (data.action === 'letter') {
+          setPartnerData(prev => ({ ...prev, letter: data.data.message }));
+        } else if (data.action === 'lantern') {
+          setPartnerData(prev => ({ ...prev, lantern: data.data.wish }));
+        } else if (data.action === 'promise') {
+          setPartnerData(prev => ({ ...prev, promises: [...(prev.promises || []), data.data.promise] }));
+        } else if (data.action === 'garden') {
+          setPartnerData(prev => ({ ...prev, garden: [...(prev.garden || []), { flower: data.data.flower, message: data.data.message }] }));
+        } else if (data.action === 'quiz') {
+          setPartnerData(prev => ({ ...prev, quizAnswers: data.data.answers }));
+        } else if (data.action === 'capsule') {
+          setPartnerData(prev => ({ ...prev, capsule: data.data.message }));
+        } else if (data.action === 'memory') {
+          setPartnerData(prev => ({ ...prev, memory: data.data.memory }));
+        } else if (data.action === 'submit-data') {
+          // Partner submitted their data - reload to check status
+          checkExisting();
+        }
+
+        // Re-check full status whenever partner does anything
+        checkExisting();
+      });
+
+      // Partner section change (real-time "currently doing")
+      socket.on('partner-viewing', (data: { section: string }) => {
+        setPartnerCurrentSection(data.section);
       });
       
       // Listen for day completion
       socket.on('day-completed', (data: { day: number; reflection: string }) => {
         if (data.day === 8) {
           setReflection(data.reflection);
+          reflectionRef.current = data.reflection; // Keep ref in sync for polling
           setPartnerSubmitted(true);
           checkExisting(); // Reload all data
-        }
-      });
-
-      // Listen for partner submitting data - reload status
-      socket.on('partner-acted', (data: { playerId: string; day: number; action: string; data: any }) => {
-        if (data.day === 8 && data.action === 'submit-data') {
-          // Partner submitted their data - reload to check status
-          checkExisting();
         }
       });
       
@@ -1455,7 +1747,8 @@ export default function Day8Page() {
     }
     
     checkExisting();
-    const poll = setInterval(function () { if (!reflection) checkExisting(); else clearInterval(poll); }, 10000);
+    // Use ref to avoid stale closure - poll stops when reflection is set (final screen shown)
+    const poll = setInterval(function () { if (!reflectionRef.current) checkExisting(); else clearInterval(poll); }, 10000);
     return function () { 
       clearInterval(poll); 
       socketClient.removeAllListeners();
@@ -1542,11 +1835,21 @@ export default function Day8Page() {
       console.log('📡 [Day8] Day status response:', JSON.stringify(data).substring(0, 500));
       // setDayStatusData removed
       console.log('📊 [Day8] Checking - submitted:', data.submitted, '| partnerSubmitted:', data.partnerSubmitted);
+      // Update progress counters
+      if (typeof data.playerProgress === 'number') {
+        setPlayerProgress(data.playerProgress);
+      }
+      if (typeof data.partnerProgress === 'number') {
+        setPartnerProgress(data.partnerProgress);
+      }
       if (data.submitted) {
         setSubmitted(true);
         if (data.partnerSubmitted) {
           setPartnerSubmitted(true);
-          if (data.reflection) setReflection(data.reflection);
+          if (data.reflection) {
+            setReflection(data.reflection);
+            reflectionRef.current = data.reflection; // Keep ref in sync for polling
+          }
           // Fetch both responses for summary
           if (data.responses) {
             setBothResponses(data.responses);
@@ -1577,6 +1880,8 @@ export default function Day8Page() {
   };
 
   const handleSubmit = async function () {
+    // Don't set submitted=true here - let checkExisting() determine the state
+    // This prevents showing final screen when only one partner has completed
     setLoading(true);
     try {
       const pid = localStorage.getItem('playerId');
@@ -1586,12 +1891,14 @@ export default function Day8Page() {
         body: JSON.stringify({ roomId: roomId, playerId: pid, day: dayNumber }),
       });
       const data = await res.json();
-      setSubmitted(true);
+      // Don't setSubmitted(true) here - checkExisting() will update state correctly
+      // Only set partnerSubmitted and reflection when BOTH have completed (data.completed is true)
       if (data.completed) {
         setPartnerSubmitted(true);
         setReflection(data.reflection || null);
+        reflectionRef.current = data.reflection || null; // Keep ref in sync for polling
       }
-      // Reload data to get accurate status
+      // Always reload to get accurate status - this will properly set submitted based on server state
       await checkExisting();
     } catch (e) { console.error('Submit failed:', e); }
     finally { setLoading(false); }
@@ -1791,6 +2098,41 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
               <p style={{ color: PALETTE.champagne, fontSize: 16, lineHeight: 1.8, marginBottom: 20 }}>
                 Your love letter and activities have been submitted! ✨
               </p>
+
+              {/* Progress counters */}
+              <div style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 24,
+                marginBottom: 24,
+              }}>
+                <div style={{
+                  background: "rgba(224,71,107,0.15)",
+                  borderRadius: 16,
+                  padding: "16px 24px",
+                  border: "1px solid rgba(224,71,107,0.4)",
+                  textAlign: "center",
+                }}>
+                  <div style={{ color: PALETTE.gold, fontSize: 12, marginBottom: 4 }}>YOUR PROGRESS</div>
+                  <div style={{ color: "#2ecc71", fontSize: 28, fontWeight: 900 }}>
+                    {playerProgress}/9
+                  </div>
+                  <div style={{ color: PALETTE.champagne, fontSize: 11 }}>activities completed</div>
+                </div>
+                <div style={{
+                  background: "rgba(155,89,182,0.15)",
+                  borderRadius: 16,
+                  padding: "16px 24px",
+                  border: "1px solid rgba(155,89,182,0.4)",
+                  textAlign: "center",
+                }}>
+                  <div style={{ color: PALETTE.gold, fontSize: 12, marginBottom: 4 }}>{partnerName?.toUpperCase() || 'PARTNER'}</div>
+                  <div style={{ color: "#9b59b6", fontSize: 28, fontWeight: 900 }}>
+                    {partnerProgress}/9
+                  </div>
+                  <div style={{ color: PALETTE.champagne, fontSize: 11 }}>activities completed</div>
+                </div>
+              </div>
 
               {/* Show your submitted data */}
               <div style={{
@@ -2160,18 +2502,28 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
           )}
         </div>
 
-        {/* Submit section */}
-        <GCard style={{ padding: 20, marginBottom: 20 }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>💝</div>
-            <p style={{ color: PALETTE.champagne, fontSize: 15, marginBottom: 16 }}>
-              Complete your journey together
-            </p>
-            <SparkBtn onClick={handleSubmit} color={PALETTE.crimson} disabled={loading}>
-              {loading ? "Submitting..." : "Complete Our Journey 💕"}
-            </SparkBtn>
-          </div>
-        </GCard>
+        {/* Dual Progress Panel */}
+        <DualProgressPanel
+          myName={myName || 'You'}
+          partnerName={partnerName || 'Partner'}
+          myUnlocked={unlocked}
+          partnerUnlocked={partnerUnlocked}
+          mySection={section}
+          partnerSection={partnerCurrentSection}
+          onSectionClick={switchSection}
+        />
+
+        {/* Smart Submit Button - shows when you have 9 activities */}
+        {playerProgress >= 9 && (
+          <SparkBtn 
+            onClick={handleSubmit} 
+            color={PALETTE.crimson} 
+            disabled={loading}
+            style={{ width: '100%', marginBottom: 20 }}
+          >
+            {loading ? "Submitting..." : partnerProgress >= 9 ? "Complete Our Journey 💕" : "Complete Your Journey 💕"}
+          </SparkBtn>
+        )}
 
         {/* Navigation */}
         <div style={{
@@ -2179,7 +2531,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
           scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
         }}>
           {SECTIONS.map(s => (
-            <button key={s.id} onClick={() => setSection(s.id)} style={{
+            <button key={s.id} onClick={() => switchSection(s.id)} style={{
               flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
               padding: "10px 12px", borderRadius: 16,
               background: section === s.id ? "rgba(224,71,107,0.2)" : "rgba(255,255,255,0.04)",

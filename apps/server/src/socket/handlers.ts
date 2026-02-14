@@ -209,6 +209,14 @@ export function setupSocketHandlers(io: Server) {
       rooms.set(roomId, room);
     });
     
+    // Partner viewing section (for Day 8 real-time progress)
+    socket.on('viewing-section', (data: { roomId: string; playerId: string; section: string }) => {
+      socket.to(data.roomId.toUpperCase()).emit('partner-viewing', {
+        playerId: data.playerId,
+        section: data.section,
+      });
+    });
+    
     // Disconnect
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);

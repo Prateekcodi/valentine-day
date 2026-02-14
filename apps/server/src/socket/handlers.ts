@@ -217,6 +217,24 @@ export function setupSocketHandlers(io: Server) {
       });
     });
     
+    // Chat message relay
+    socket.on('chat-message', (data: { 
+      roomId: string; 
+      playerId: string; 
+      playerName: string;
+      message: string; 
+      msgId: string;
+      timestamp: number;
+    }) => {
+      // Relay to everyone else in the room (including sender for confirmation)
+      socket.to(data.roomId.toUpperCase()).emit('chat-message', data);
+    });
+
+    // Typing indicator relay
+    socket.on('chat-typing', (data: { roomId: string; playerId: string; isTyping: boolean }) => {
+      socket.to(data.roomId.toUpperCase()).emit('chat-typing', data);
+    });
+    
     // Disconnect
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);

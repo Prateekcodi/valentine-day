@@ -81,6 +81,18 @@ const SECTION_LABELS: Record<string, string> = {
   achievements: 'Hunting for secrets 🔮',
 };
 
+// Quick reply messages for chat
+const QUICK_REPLIES = [
+  "💕 I love you!",
+  "😄 Haha so cute!",
+  "🥺 Aww...",
+  "✨ Feeling so special rn",
+  "😂 You're so dramatic",
+  "🫶 Miss you!",
+  "🌹 Happy Valentine's!",
+  "🔮 Found the secret!",
+];
+
 // ═══════════════════════════════════════════════════════════
 // 01. CURSOR TRAIL
 // ═══════════════════════════════════════════════════════════
@@ -1597,6 +1609,309 @@ function DualProgressPanel({
 }
 
 // ═══════════════════════════════════════════════════════════
+// CHAT PANEL COMPONENT
+// ═══════════════════════════════════════════════════════════
+interface ChatMessage {
+  msgId: string;
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: number;
+}
+
+function ChatPanel({
+  roomId, myPlayerId, myName, partnerName,
+  open, onClose, onUnread,
+}: {
+  roomId: string;
+  myPlayerId: string;
+  myName: string;
+  partnerName: string;
+  open: boolean;
+  onClose: () => void;
+  onUnread: (count: number) => void;
+}) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [partnerTyping, setPartnerTyping] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimer = useRef<NodeJS.Timeout | null>(null);
+  const unreadRef = useRef(0);
+
+  // Load chat history on first open
+  useEffect(() => {
+    if (!open || loaded) return;
+    setLoaded(true);
+    fetch(`${API_URL}/api/room/${roomId}/chat`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.messages) setMessages(d.messages);
+      })
+      .catch(e => console.error('Chat load failed:', e));
+  }, [open, loaded, roomId]);
+
+  // Socket listeners
+  useEffect(() => {
+    const socket = socketClient.connect();
+
+    const handleMessage = (data: ChatMessage) => {
+      setMessages(prev => {
+        if (prev.some(m => m.msgId === data.msgId)) return prev;
+        return [...prev, data];
+      });
+      if (!open) {
+        unreadRef.current += 1;
+        onUnread(unreadRef.current);
+      }
+    };
+
+    const handleTyping = (data: { playerId: string; isTyping: boolean }) => {
+      if (data.playerId !== myPlayerId) {
+        setPartnerTyping(data.isTyping);
+      }
+    };
+
+    socket.on('chat-message', handleMessage);
+    socket.on('chat-typing', handleTyping);
+
+    return () => {
+      socket.off('chat-message', handleMessage);
+      socket.off('chat-typing', handleTyping);
+    };
+  }, [open, myPlayerId, onUnread]);
+
+  // Reset unread when opened
+  useEffect(() => {
+    if (open) {
+      unreadRef.current = 0;
+      onUnread(0);
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [open, onUnread]);
+
+  // Auto-scroll on new messages
+  useEffect(() => {
+    if (open) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, partnerTyping, open]);
+
+  const sendMessage = async (text?: string) => {
+    const msg = (text || input).trim();
+    if (!msg || sending) return;
+
+    const newMsg: ChatMessage = {
+      msgId: `${myPlayerId}-${Date.now()}`,
+      playerId: myPlayerId,
+      playerName: myName,
+      message: msg,
+      timestamp: Date.now(),
+    };
+
+    setMessages(prev => [...prev, newMsg]);
+    setInput('');
+    setSending(true);
+
+    socketClient.emit('chat-typing', { roomId, playerId: myPlayerId, isTyping: false });
+
+    try {
+      await fetch(`${API_URL}/api/room/${roomId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMsg),
+      });
+    } catch (e) {
+      console.error('Send failed:', e);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+    socketClient.emit('chat-typing', { roomId, playerId: myPlayerId, isTyping: true });
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => {
+      socketClient.emit('chat-typing', { roomId, playerId: myPlayerId, isTyping: false });
+    }, 1500);
+  };
+
+  const formatTime = (ts: number) => {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
+  const groupMessages = () => {
+    const groups: Array<{ date: string; messages: ChatMessage[] }> = [];
+    let currentDate = '';
+    messages.forEach(msg => {
+      const date = new Date(msg.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (date !== currentDate) {
+        currentDate = date;
+        groups.push({ date, messages: [msg] });
+      } else {
+        groups[groups.length - 1].messages.push(msg);
+      }
+    });
+    return groups;
+  };
+
+  if (!open) return null;
+
+  return (
+    <div style={{
+      position: "fixed",
+      bottom: 80, right: 16,
+      width: "min(380px, calc(100vw - 32px))",
+      height: "min(560px, calc(100vh - 120px))",
+      zIndex: 9990,
+      display: "flex", flexDirection: "column",
+      borderRadius: 24,
+      background: "rgba(8,2,18,0.97)",
+      backdropFilter: "blur(30px)",
+      border: "1px solid rgba(224,71,107,0.35)",
+      boxShadow: "0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05), 0 0 60px rgba(224,71,107,0.1)",
+      animation: "chatSlideUp 0.35s cubic-bezier(0.175,0.885,0.32,1.275)",
+      overflow: "hidden",
+    }}>
+      <style>{`
+        @keyframes chatSlideUp {
+          0% { transform: translateY(30px) scale(0.95); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes typingDot {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+        @keyframes msgPop {
+          0% { transform: scale(0.85) translateY(8px); opacity: 0; }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{
+        padding: "16px 20px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "rgba(224,71,107,0.08)",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: "50%",
+            background: "linear-gradient(135deg, #9b1b30, #e0476b)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, border: "2px solid rgba(224,71,107,0.4)",
+            boxShadow: "0 0 16px rgba(224,71,107,0.3)",
+          }}>💕</div>
+          <div>
+            <div style={{ color: PALETTE.blush, fontWeight: 700, fontSize: 14, fontFamily: "Georgia,serif" }}>
+              {partnerName || 'Partner'}
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>
+              {partnerTyping ? <span style={{ color: PALETTE.gold }}>typing... 💬</span> : "Valentine's Chat 🌹"}
+            </div>
+          </div>
+        </div>
+        <button onClick={onClose} style={{
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "50%", width: 32, height: 32,
+          color: "rgba(255,255,255,0.5)", fontSize: 16,
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.2s",
+        }}>✕</button>
+      </div>
+
+      {/* Messages area */}
+      <div style={{
+        flex: 1, overflowY: "auto", padding: "16px 14px",
+        display: "flex", flexDirection: "column", gap: 2,
+        scrollbarWidth: "thin",
+        scrollbarColor: "rgba(224,71,107,0.3) transparent",
+      }}>
+        {messages.length === 0 && (
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 12,
+            color: "rgba(255,255,255,0.25)", fontStyle: "italic",
+            fontFamily: "Georgia,serif", textAlign: "center",
+          }}>
+            <div style={{ fontSize: 48, animation: "floatBob 3s ease-in-out infinite" }}>💌</div>
+            <div style={{ fontSize: 14 }}>Say something romantic...<br />or funny. Both work. 😄</div>
+          </div>
+        )}
+
+        {groupMessages().map((group) => (
+          <div key={group.date}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0 8px" }}>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, padding: "2px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.06)" }}>{group.date}</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+
+            {group.messages.map((msg, i) => {
+              const isMe = msg.playerId === myPlayerId;
+              const prevMsg = group.messages[i - 1];
+              const showName = !prevMsg || prevMsg.playerId !== msg.playerId;
+              const showTime = !group.messages[i + 1] || group.messages[i + 1].playerId !== msg.playerId;
+
+              return (
+                <div key={msg.msgId} style={{ display: "flex", flexDirection: isMe ? "row-reverse" : "row", alignItems: "flex-end", gap: 8, marginTop: showName ? 10 : 2, animation: "msgPop 0.3s ease" }}>
+                  {!isMe && (
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg, #7c3aed, #c084fc)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, opacity: showTime ? 1 : 0, border: "1.5px solid rgba(168,85,247,0.4)" }}>
+                      {(msg.playerName || 'P')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div style={{ maxWidth: "72%", display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start" }}>
+                    {showName && !isMe && <div style={{ color: "#c084fc", fontSize: 11, fontWeight: 700, marginBottom: 4, paddingLeft: 4 }}>{msg.playerName}</div>}
+                    <div style={{ padding: "10px 14px", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: isMe ? `linear-gradient(135deg, ${PALETTE.crimson}, ${PALETTE.rose})` : "rgba(255,255,255,0.08)", border: isMe ? "none" : "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 14, lineHeight: 1.5, wordBreak: "break-word", boxShadow: isMe ? `0 4px 16px ${PALETTE.rose}33` : "none" }}>
+                      {msg.message}
+                    </div>
+                    {showTime && <div style={{ fontSize: 10, marginTop: 3, paddingLeft: 4, paddingRight: 4, color: "rgba(255,255,255,0.25)" }}>{formatTime(msg.timestamp)}{isMe && <span style={{ marginLeft: 4 }}>✓</span>}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+
+        {partnerTyping && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, animation: "msgPop 0.3s ease" }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #7c3aed, #c084fc)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, border: "1.5px solid rgba(168,85,247,0.4)" }}>{(partnerName || 'P')[0].toUpperCase()}</div>
+            <div style={{ padding: "10px 16px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "18px 18px 18px 4px", display: "flex", gap: 4, alignItems: "center" }}>
+              {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: PALETTE.blush, animation: `typingDot 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Quick replies */}
+      <div style={{ padding: "8px 12px 0", display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none", flexShrink: 0 }}>
+        {QUICK_REPLIES.map(qr => (
+          <button key={qr} onClick={() => sendMessage(qr)} style={{ flexShrink: 0, padding: "5px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(224,71,107,0.3)", borderRadius: 20, color: "rgba(255,255,255,0.65)", fontSize: 12, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", fontFamily: "Georgia,serif" }}>{qr}</button>
+        ))}
+      </div>
+
+      {/* Input area */}
+      <div style={{ padding: "10px 12px 14px", display: "flex", gap: 8, alignItems: "center", flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 8 }}>
+        <input ref={inputRef} value={input} onChange={handleInputChange} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Type something sweet... 💕" maxLength={500} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(224,71,107,0.3)", borderRadius: 50, padding: "10px 18px", color: "white", fontSize: 14, outline: "none", fontFamily: "Georgia,serif", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.rose} onBlur={e => e.target.style.borderColor = "rgba(224,71,107,0.3)"} />
+        <button onClick={() => sendMessage()} disabled={!input.trim() || sending} style={{ width: 44, height: 44, borderRadius: "50%", flexShrink: 0, background: input.trim() ? `linear-gradient(135deg, ${PALETTE.crimson}, ${PALETTE.rose})` : "rgba(255,255,255,0.06)", border: "none", color: "white", fontSize: 20, cursor: input.trim() ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s", boxShadow: input.trim() ? `0 4px 16px ${PALETTE.rose}44` : "none", transform: input.trim() ? "scale(1)" : "scale(0.9)" }}>{sending ? "⏳" : "💌"}</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 export default function Day8Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -1614,6 +1929,17 @@ export default function Day8Page() {
   const reflectionRef = useRef<string | null>(null); // Track reflection for stale-closure-free polling
   const [mounted, setMounted] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const myPlayerId = useRef<string>('');
+
+  // Set player ID ref on mount
+  useEffect(() => {
+    const pid = localStorage.getItem('playerId') || '';
+    myPlayerId.current = pid;
+  }, []);
 
   // Valentine features state
   const [opened, setOpened] = useState(false);
@@ -2558,6 +2884,71 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
           Move your cursor · Explore all features 💕
         </div>
       </div>
+
+      {/* Floating Chat Button */}
+      {opened && roomId && !submitted && (
+        <>
+          <button
+            onClick={() => setChatOpen(o => !o)}
+            style={{
+              position: "fixed",
+              bottom: 20, right: 20,
+              width: 58, height: 58,
+              borderRadius: "50%", zIndex: 9989,
+              background: chatOpen
+                ? "rgba(255,255,255,0.1)"
+                : `linear-gradient(135deg, ${PALETTE.crimson}, ${PALETTE.rose})`,
+              border: `2px solid ${chatOpen ? "rgba(255,255,255,0.2)" : PALETTE.rose}`,
+              color: "white", fontSize: 24,
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: chatOpen
+                ? "none"
+                : `0 6px 30px ${PALETTE.rose}55, 0 0 0 0 ${PALETTE.rose}33`,
+              transition: "all 0.3s cubic-bezier(0.175,0.885,0.32,1.275)",
+              animation: !chatOpen && unreadCount > 0
+                ? "chatPulse 1.5s ease-in-out infinite"
+                : "none",
+              transform: chatOpen ? "rotate(45deg) scale(0.9)" : "scale(1)",
+            }}
+          >
+            {chatOpen ? "✕" : "💬"}
+
+            {/* Unread badge */}
+            {!chatOpen && unreadCount > 0 && (
+              <div style={{
+                position: "absolute", top: -4, right: -4,
+                width: 20, height: 20, borderRadius: "50%",
+                background: PALETTE.gold,
+                border: "2px solid #050208",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 10, fontWeight: 900, color: "#050208",
+                animation: "starPop 0.3s ease",
+              }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </div>
+            )}
+          </button>
+
+          {/* Chat Panel */}
+          <ChatPanel
+            roomId={roomId}
+            myPlayerId={myPlayerId.current}
+            myName={myName}
+            partnerName={partnerName}
+            open={chatOpen}
+            onClose={() => setChatOpen(false)}
+            onUnread={setUnreadCount}
+          />
+
+          <style>{`
+            @keyframes chatPulse {
+              0%, 100% { box-shadow: 0 6px 30px ${PALETTE.rose}55, 0 0 0 0 ${PALETTE.rose}44; }
+              50% { box-shadow: 0 6px 30px ${PALETTE.rose}55, 0 0 0 12px rgba(224,71,107,0); }
+            }
+          `}</style>
+        </>
+      )}
 
       {/* Fixed bottom nav hint */}
       <div style={{

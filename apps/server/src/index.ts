@@ -1125,6 +1125,60 @@ app.post('/api/day/8/reset', async (req: Request, res: Response) => {
   res.json({ success: true, message: 'Day 8 reset successfully' });
 });
 
+// Chat message endpoint - save to room
+app.post('/api/room/:roomId/chat', async (req: Request, res: Response) => {
+  const { playerId, playerName, message, msgId, timestamp } = req.body;
+  const roomId = req.params.roomId.toUpperCase();
+
+  if (!playerId || !message?.trim()) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  let room = rooms.get(roomId);
+  if (!room) room = await loadRoomToMemory(roomId);
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  // Initialize chat array
+  if (!room.chat) room.chat = [];
+
+  const msg = {
+    msgId: msgId || Date.now().toString(),
+    playerId,
+    playerName,
+    message: message.trim(),
+    timestamp: timestamp || Date.now(),
+  };
+
+  room.chat.push(msg);
+
+  // Keep only last 200 messages
+  if (room.chat.length > 200) {
+    room.chat = room.chat.slice(-200);
+  }
+
+  await saveRoom(room);
+  rooms.set(roomId, room);
+
+  // Broadcast to room via socket - need to get io instance
+  const io = (req as any).io;
+  if (io) {
+    io.to(roomId).emit('chat-message', msg);
+  }
+
+  res.json({ success: true, msg });
+});
+
+// Load chat history endpoint
+app.get('/api/room/:roomId/chat', async (req: Request, res: Response) => {
+  const roomId = req.params.roomId.toUpperCase();
+
+  let room = rooms.get(roomId);
+  if (!room) room = await loadRoomToMemory(roomId);
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  res.json({ messages: room.chat || [] });
+});
+
 // Start server
 const PORT = process.env.PORT || 3001;
 

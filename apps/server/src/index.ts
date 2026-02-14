@@ -188,26 +188,119 @@ Write a warm, poetic reflection (200-400 words) that:
 
 Style: Tender, warm, intimate, celebrating their emotional bond.`;
   } else {
-    prompt = `You are writing the final Valentine's Day reflection for ${p1Name} and ${p2Name} after their complete 7-day journey together.
+    // Pull all Day 8 activity data to send to AI
+    const p1Letter       = dayData.player1Letter       || '';
+    const p2Letter       = dayData.player2Letter       || '';
+    const p1Lantern      = dayData.player1Lantern      || '';
+    const p2Lantern      = dayData.player2Lantern      || '';
+    const p1Promises     = (dayData.player1Promises    || []).join(', ') || 'koi promise nahi diya';
+    const p2Promises     = (dayData.player2Promises    || []).join(', ') || 'koi promise nahi diya';
+    const p1Capsule      = dayData.player1Capsule      || '';
+    const p2Capsule      = dayData.player2Capsule      || '';
+    const p1Garden       = (dayData.player1Garden      || []).map((g: any) => `${g.flower} (${g.message})`).join(', ') || 'koi flower nahi ugaya';
+    const p2Garden       = (dayData.player2Garden      || []).map((g: any) => `${g.flower} (${g.message})`).join(', ') || 'koi flower nahi ugaya';
+    const p1Fortune      = dayData.player1Fortune      || '';
+    const p2Fortune      = dayData.player2Fortune      || '';
+    const p1Constellation = dayData.player1Constellation || 'stars connect kiye';
+    const p2Constellation = dayData.player2Constellation || 'stars connect kiye';
 
-Review what they shared each day:
-- Day 1 (Rose): Both accepted the rose
-- Day 2 (Propose): ${dayData.day2?.player1Message || ''} / ${dayData.day2?.player2Message || ''}
-- Day 3 (Chocolate): ${dayData.day3?.player1Choice || ''} / ${dayData.day3?.player2Choice || ''}
-- Day 4 (Teddy): ${dayData.day4?.player1Data?.offering || ''} / ${dayData.day4?.player2Data?.offering || ''}
-- Day 5 (Promise): ${dayData.day5?.player1Data || ''} / ${dayData.day5?.player2Data || ''}
-- Day 6 (Kiss): ${dayData.day6?.player1Data || ''} / ${dayData.day6?.player2Data || ''}
-- Day 7 (Hug): ${dayData.day7?.player1Data?.need || ''} / ${dayData.day7?.player2Data?.need || ''}
+    // Day 1-7 journey context
+    const d2p1 = dayData.day2?.player1Message   || '';
+    const d2p2 = dayData.day2?.player2Message   || '';
+    const d3p1 = dayData.day3?.player1Choice    || '';
+    const d3p2 = dayData.day3?.player2Choice    || '';
+    const d4p1 = dayData.day4?.player1Data?.offering || '';
+    const d4p2 = dayData.day4?.player2Data?.offering || '';
+    const d5p1 = dayData.day5?.player1Data      || '';
+    const d5p2 = dayData.day5?.player2Data      || '';
+    const d6p1 = dayData.day6?.player1Data      || '';
+    const d6p2 = dayData.day6?.player2Data      || '';
+    const d7p1 = dayData.day7?.player1Data?.need || '';
+    const d7p2 = dayData.day7?.player2Data?.need || '';
 
-Write a comprehensive, heartfelt final reflection (300-500 words) that:
-- Celebrates their complete journey together
-- Reflects on how their connection has grown
-- Acknowledges their unique bond and love
-- Makes them feel deeply seen and cherished
-- Honors the effort and vulnerability they shared
-- Feels like a beautiful conclusion to their Valentine's Week
+    prompt = `Tum ek AI ho jo ${p1Name} aur ${p2Name} ke liye unka Valentine's Week Grand Finale reflection likh raha hai.
 
-Style: Poetic, warm, celebratory, deeply meaningful.`;
+Inhone poora ek hafte saath kiya — aur aaj, Day 8 pe, inhone yeh sab actually kiya:
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+💌 LOVE LETTERS (jo inhone likhe)
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ne likha:
+"${p1Letter}"
+
+${p2Name} ne likha:
+"${p2Letter}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+🏮 LANTERN WISHES (jo inhone release kiye)
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ki wish: "${p1Lantern}"
+${p2Name} ki wish: "${p2Lantern}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+💎 PROMISES (jo inhone star mein daale)
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ke promises: ${p1Promises}
+${p2Name} ke promises: ${p2Promises}
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+📦 TIME CAPSULE (future selves ke liye)
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ne likha: "${p1Capsule}"
+${p2Name} ne likha: "${p2Capsule}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+🌺 LOVE GARDEN (jo unhone ugaya)
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ka garden: ${p1Garden}
+${p2Name} ka garden: ${p2Garden}
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+🥠 FORTUNE COOKIES
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name} ko mili: "${p1Fortune}"
+${p2Name} ko mili: "${p2Fortune}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+⭐ CONSTELLATION
+━━━━━━━━━━━━━━━━━━━━━━━━
+${p1Name}: ${p1Constellation}
+${p2Name}: ${p2Constellation}
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+📅 POORE HAFTE KA CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━━━
+Day 2 - Propose: ${p1Name}: "${d2p1}" | ${p2Name}: "${d2p2}"
+Day 3 - Chocolate: ${p1Name}: ${d3p1} | ${p2Name}: ${d3p2}
+Day 4 - Teddy comfort: ${p1Name}: "${d4p1}" | ${p2Name}: "${d4p2}"
+Day 5 - Promise: ${p1Name}: "${d5p1}" | ${p2Name}: "${d5p2}"
+Day 6 - Affection: ${p1Name}: "${d6p1}" | ${p2Name}: "${d6p2}"
+Day 7 - Hug need: ${p1Name}: "${d7p1}" | ${p2Name}: "${d7p2}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+TUMHARA KAAM
+━━━━━━━━━━━━━━━━━━━━━━━━
+Ab inke ACTUAL data ko use karke ek 300-400 word Hinglish reflection likho jo:
+
+TONE: Funny pehle, phir dil ko chhue — jaise woh best friend jo pehle roast kare aur phir sabse pyaara hug de 😄💕
+
+STRUCTURE:
+1. 🎭 Funny opening — unke journey ka ek gentle roast (use actual data to make it personal!)
+2. 💌 Love letter moment — unke actual letters se ek cheez pick karo jo touching ya funny ho
+3. 🏮 Wishes + Promises pe react karo — kya wish ki? Kya promise diya? React with humor + warmth
+4. 📦 Time capsule pe ek emotional line — future selves ko message ke baare mein
+5. 🌟 Grand closing — ek **bold line** jo actually emotional ho after all the jokes
+6. Score line at the end: ★ Love Score: XX% | ☆ Vibe: X/5 stars
+
+STRICT RULES:
+- Hinglish ONLY — natural mix jaise "tum meri morning coffee ho", "dil buffering mode mein"
+- DIRECTLY reference unka actual data — unke actual words quote karo, react karo unpe
+- Tech metaphors: buffering, WiFi, full storage, notifications, reboot, password-protected, uninstall
+- Emojis naturally — ❤️ 😄 😌 💕 🫶 ✨ — jaise real texting
+- **Bold** karo the single most emotional line
+- ${p1Name} aur ${p2Name} ke names naturally use karo throughout
+- Kabhi generic mat likho — agar kisi ne specific wish ya promise likha hai toh uska directly mention karo
+- End pe ek joke bhi ho, serious only nahi`;
   }
 
   console.log(`[Day ${day}] 📝 Prompt prepared, calling AI...`);

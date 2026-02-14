@@ -604,13 +604,21 @@ const MEMORIES = [
   { emoji: "💫", front: "Our Future", back: "Aaj face unseen hai, kal milna likha hai. Sapno mein toh hum already saath hain 💞" },
 ];
 
-function MemoryCard({ mem, index }: { mem: typeof MEMORIES[0]; index: number }) {
+function MemoryCard({ mem, index, onUnlock }: { mem: typeof MEMORIES[0]; index: number; onUnlock?: (id: string) => void }) {
   const [flipped, setFlipped] = useState(false);
   const colors = ["#9b1b30", "#5c0a1e", "#7c3aed", "#0e7490", "#92400e", "#166534"];
   const rots = ["-3deg", "2deg", "-1deg", "4deg", "-2deg", "3deg"];
 
+  const handleFlip = () => {
+    setFlipped(f => !f);
+    // Mark scrapbook as completed when user flips any card
+    if (onUnlock) {
+      onUnlock("scrapbook");
+    }
+  };
+
   return (
-    <div onClick={() => setFlipped(f => !f)} style={{
+    <div onClick={handleFlip} style={{
       cursor: "pointer", perspective: 1000,
       transform: `rotate(${rots[index % rots.length]})`,
       transition: "transform 0.2s",
@@ -658,12 +666,12 @@ function MemoryCard({ mem, index }: { mem: typeof MEMORIES[0]; index: number }) 
   );
 }
 
-function MemoryScrapbook() {
+function MemoryScrapbook({ onUnlock, roomId }: { onUnlock: (id: string) => void; roomId?: string }) {
   return (
     <div>
       <SectionHead icon="📸" title="Memory Scrapbook" subtitle="Every moment we've shared, preserved forever..." />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        {MEMORIES.map((m, i) => <MemoryCard key={i} mem={m} index={i} />)}
+        {MEMORIES.map((m, i) => <MemoryCard key={i} mem={m} index={i} onUnlock={onUnlock} />)}
       </div>
       <p style={{ textAlign: "center", color: "rgba(249,168,196,0.5)", fontSize: 12, marginTop: 16, fontStyle: "italic" }}>
         Tap any card to reveal the memory ✨
@@ -2342,9 +2350,12 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
         setFireworks(true);
         setTimeout(() => { setPetalRain(false); setFireworks(false); }, 5000);
       }
-      // Submit achievements to server
+      // Submit activity to server
       const pid = localStorage.getItem('playerId');
       if (pid && roomId) {
+        // For scrapbook, use 'memory' action
+        const action = id === 'scrapbook' ? 'memory' : 'achievements';
+        const data = id === 'scrapbook' ? { memory: 'Viewed memory scrapbook' } : { badges: nu };
         fetch(API_URL + '/api/day/8/activity', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2352,10 +2363,10 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
             roomId, 
             playerId: pid, 
             day: 8, 
-            action: 'achievements', 
-            data: { badges: nu } 
+            action, 
+            data 
           })
-        }).catch(e => console.error('Achievement submit failed:', e));
+        }).catch(e => console.error('Activity submit failed:', e));
       }
       return nu;
     });
@@ -2368,7 +2379,7 @@ ${p2.fortune ? `🥠 Fortune: ${p2.fortune}` : ''}
   const renderSection = () => {
     switch (section) {
       case "letter": return <LoveLetter {...sectionProps} />;
-      case "scrapbook": return <MemoryScrapbook />;
+      case "scrapbook": return <MemoryScrapbook {...sectionProps} />;
       case "lanterns": return <WishLanterns {...sectionProps} />;
       case "constellation": return <StarConstellation {...sectionProps} />;
       case "garden": return <LoveGarden {...sectionProps} />;

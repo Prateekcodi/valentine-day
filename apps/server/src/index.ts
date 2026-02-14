@@ -972,10 +972,18 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
     return;
   } else if (day === 8) {
     // Day 8 - Valentine's Day: Return all activities
-    hasThisPlayerSubmitted = !!dayProgress.data?.completed;
-    hasPartnerSubmitted = isPlayer1 
-      ? !!dayProgress.data?.player2Letter 
-      : !!dayProgress.data?.player1Letter;
+    // Check ALL 10 activities are completed
+    const data = dayProgress.data || {};
+    const checkPlayerComplete = (isP1: boolean) => {
+      const p = isP1 ? 'player1' : 'player2';
+      return !!(data[`${p}Letter`] && data[`${p}Memory`] && data[`${p}Lantern`] && 
+        (data[`${p}Promises`]?.length > 0) && data[`${p}Capsule`] && 
+        (data[`${p}Garden`]?.length > 0) && data[`${p}Quiz`] && 
+        data[`${p}Constellation`] && data[`${p}Fortune`] && 
+        (data[`${p}Achievements`]?.length > 0));
+    };
+    hasThisPlayerSubmitted = checkPlayerComplete(isPlayer1);
+    hasPartnerSubmitted = checkPlayerComplete(!isPlayer1);
     
     const p1Letter = dayProgress.data?.player1Letter || null;
     const p2Letter = dayProgress.data?.player2Letter || null;
@@ -1048,6 +1056,7 @@ app.get('/api/day/:day/status', async (req: Request, res: Response) => {
       const badges: string[] = [];
       const d = dayProgress.data || {};
       if (d[`${prefix}Letter`])                          badges.push('letter');
+      if (d[`${prefix}Memory`])                          badges.push('scrapbook');
       if (d[`${prefix}Lantern`])                         badges.push('lantern');
       if (d[`${prefix}Promises`]?.length > 0)            badges.push('promise');
       if (d[`${prefix}Capsule`])                         badges.push('capsule');

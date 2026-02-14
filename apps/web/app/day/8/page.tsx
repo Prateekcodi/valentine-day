@@ -878,10 +878,11 @@ function LoveGarden({ onUnlock, roomId }: { onUnlock: (id: string) => void; room
   const [plants, setPlants] = useState<Array<{ id: number; seed: typeof SEEDS[0]; age: number }>>([]);
   const [stage, setStage] = useState<Record<number, number>>({});
   const [watered, setWatered] = useState(false);
+  const plantIdRef = useRef(0);
 
   const plant = (seed: typeof SEEDS[0]) => {
     if (water < seed.cost) return;
-    const id = Date.now();
+    const id = ++plantIdRef.current;
     setWater(w => w - seed.cost);
     setPlants(p => [...p, { id, seed, age: 0 }]);
     setStage(s => ({ ...s, [id]: 0 }));
